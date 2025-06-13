@@ -1,4 +1,3 @@
-set -x
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
@@ -54,6 +53,7 @@ for prog in "${PROGRAMS[@]}"; do
     # Paths
     PREP_MLIR="${prog}${name}_prep_mlir.c"
     PREP_C="${prog}${name}_prep_c.c"
+    KERNEL_C="${prog}${name}_kernel.c"
     KERNEL_O="${prog}${name}_kernel.o"
 
     # Output executables
@@ -70,7 +70,7 @@ for prog in "${PROGRAMS[@]}"; do
         continue
     fi
     # Compile C version
-    clang $DUMP_FLAGS $LIBS ../polybench-c-3.2/utilities/polybench.c "$PREP_C" -o "$OUT2" &> /dev/null
+    clang $DUMP_FLAGS $LIBS ../polybench-c-3.2/utilities/polybench.c "$PREP_C" "$KERNEL_C" -o "$OUT2" &> /dev/null
     if [ $? -ne 0 ]; then
         echo "[FAIL] ${name}: Compilation failed for C version!"
         compile_fail=$((compile_fail + 1))
