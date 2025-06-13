@@ -1,16 +1,8 @@
-void kernel_gemver(int n,
-     double alpha,
-     double beta,
-     double A[4000 + 0][4000 + 0],
-     double u1[4000 + 0],
-     double v1[4000 + 0],
-     double u2[4000 + 0],
-     double v2[4000 + 0],
-     double w[4000 + 0],
-     double x[4000 + 0],
-     double y[4000 + 0],
-     double z[4000 + 0])
-{
+void kernel_gemver(int n, double alpha, double beta,
+                   double A[4000 + 0][4000 + 0], double u1[4000 + 0],
+                   double v1[4000 + 0], double u2[4000 + 0],
+                   double v2[4000 + 0], double w[4000 + 0], double x[4000 + 0],
+                   double y[4000 + 0], double z[4000 + 0]) {
   int i, j;
 
 #pragma scop

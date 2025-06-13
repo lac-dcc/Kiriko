@@ -1,8 +1,5 @@
-void kernel_trmm(int ni,
-   double alpha,
-   double A[1024 + 0][1024 + 0],
-   double B[1024 + 0][1024 + 0])
-{
+void kernel_trmm(int ni, double alpha, double A[1024 + 0][1024 + 0],
+                 double B[1024 + 0][1024 + 0]) {
   int i, j, k;
 
 #pragma scop
@@ -12,5 +9,4 @@ void kernel_trmm(int ni,
       for (k = 0; k < i; k++)
         B[i][j] += alpha * A[i][k] * B[j][k];
 #pragma endscop
-
 }
