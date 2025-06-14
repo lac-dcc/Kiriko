@@ -2,41 +2,41 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 PROGRAMS=(
-    "../polybench-c-3.2/datamining/correlation/"
-    "../polybench-c-3.2/datamining/covariance/"
-    "../polybench-c-3.2/linear-algebra/kernels/2mm/"
-    "../polybench-c-3.2/linear-algebra/kernels/3mm/"
-    "../polybench-c-3.2/linear-algebra/kernels/atax/"
-    "../polybench-c-3.2/linear-algebra/kernels/bicg/"
-    "../polybench-c-3.2/linear-algebra/kernels/cholesky/"
-    "../polybench-c-3.2/linear-algebra/kernels/doitgen/"
-    "../polybench-c-3.2/linear-algebra/kernels/gemm/"
-    "../polybench-c-3.2/linear-algebra/kernels/gemver/"
-    "../polybench-c-3.2/linear-algebra/kernels/gesummv/"
-    "../polybench-c-3.2/linear-algebra/kernels/mvt/"
-    "../polybench-c-3.2/linear-algebra/kernels/symm/"
-    "../polybench-c-3.2/linear-algebra/kernels/syr2k/"
-    "../polybench-c-3.2/linear-algebra/kernels/syrk/"
-    "../polybench-c-3.2/linear-algebra/kernels/trisolv/"
-    "../polybench-c-3.2/linear-algebra/kernels/trmm/"
-    "../polybench-c-3.2/linear-algebra/solvers/durbin/"
-    "../polybench-c-3.2/linear-algebra/solvers/dynprog/"
-    "../polybench-c-3.2/linear-algebra/solvers/gramschmidt/"
-    "../polybench-c-3.2/linear-algebra/solvers/lu/"
-    "../polybench-c-3.2/linear-algebra/solvers/ludcmp/"
-    "../polybench-c-3.2/medley/floyd-warshall/"
-    "../polybench-c-3.2/medley/reg_detect/"
-    "../polybench-c-3.2/stencils/adi/"
-    "../polybench-c-3.2/stencils/fdtd-2d/"
-    "../polybench-c-3.2/stencils/fdtd-apml/"
-    "../polybench-c-3.2/stencils/jacobi-1d-imper/"
-    "../polybench-c-3.2/stencils/jacobi-2d-imper/"
-    "../polybench-c-3.2/stencils/seidel-2d/"
+    "../polybench-c-mlir-3.2/datamining/correlation/"
+    "../polybench-c-mlir-3.2/datamining/covariance/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/2mm/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/3mm/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/atax/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/bicg/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/cholesky/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/doitgen/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/gemm/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/"
+    "../polybench-c-mlir-3.2/linear-algebra/kernels/trmm/"
+    "../polybench-c-mlir-3.2/linear-algebra/solvers/durbin/"
+    "../polybench-c-mlir-3.2/linear-algebra/solvers/dynprog/"
+    "../polybench-c-mlir-3.2/linear-algebra/solvers/gramschmidt/"
+    "../polybench-c-mlir-3.2/linear-algebra/solvers/lu/"
+    "../polybench-c-mlir-3.2/linear-algebra/solvers/ludcmp/"
+    "../polybench-c-mlir-3.2/medley/floyd-warshall/"
+    "../polybench-c-mlir-3.2/medley/reg_detect/"
+    "../polybench-c-mlir-3.2/stencils/adi/"
+    "../polybench-c-mlir-3.2/stencils/fdtd-2d/"
+    "../polybench-c-mlir-3.2/stencils/fdtd-apml/"
+    "../polybench-c-mlir-3.2/stencils/jacobi-1d-imper/"
+    "../polybench-c-mlir-3.2/stencils/jacobi-2d-imper/"
+    "../polybench-c-mlir-3.2/stencils/seidel-2d/"
 )
 
 # Flags
-CFLAGS="-DPOLYBENCH_TIME -I ../polybench-c-3.2/utilities"
-DUMP_FLAGS="-DPOLYBENCH_TIME -I ../polybench-c-3.2/utilities"
+CFLAGS="-DPOLYBENCH_TIME -I ../polybench-c-mlir-3.2/utilities"
+DUMP_FLAGS="-DPOLYBENCH_TIME -I ../polybench-c-mlir-3.2/utilities"
 LIBS="-lm"
 
 compile_success=0
@@ -63,14 +63,14 @@ for prog in "${PROGRAMS[@]}"; do
     echo "== Compiling ${prog} =="
 
     # Compile MLIR-based version
-    clang $CFLAGS ../polybench-c-3.2/utilities/polybench.c "$PREP_MLIR" "$KERNEL_O" -o "$OUT1" &> /dev/null
+    clang $CFLAGS ../polybench-c-mlir-3.2/utilities/polybench.c "$PREP_MLIR" "$KERNEL_O" -o "$OUT1" &> /dev/null
     if [ $? -ne 0 ]; then
         echo "[FAIL] ${name}: Compilation failed for MLIR version!"
         compile_fail=$((compile_fail + 1))
         continue
     fi
     # Compile C version
-    clang $DUMP_FLAGS $LIBS ../polybench-c-3.2/utilities/polybench.c "$PREP_C" "$KERNEL_C" -o "$OUT2" &> /dev/null
+    clang $DUMP_FLAGS $LIBS ../polybench-c-mlir-3.2/utilities/polybench.c "$PREP_C" "$KERNEL_C" -o "$OUT2" &> /dev/null
     if [ $? -ne 0 ]; then
         echo "[FAIL] ${name}: Compilation failed for C version!"
         compile_fail=$((compile_fail + 1))
