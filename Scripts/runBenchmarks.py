@@ -10,6 +10,41 @@ MLIR_TRANSLATE_PATH = "mlir-translate"  # Path to your mlir-translate binary
 PLUTO_PATH = "../pluto-0.13.0/polycc"  # Path to your pluto binary
 CLANG_PATH = "clang"  # Path to your clang binary
 
+def compile_program(kernel_obj, version):
+    """
+    Compiles a given kernel object file with the specified version.
+
+    Args:
+        kernel_obj: Path to the kernel object file.
+        version: Version of the compiler to use (e.g., "mlir", "pluto", "polly").
+    """
+    flags = ["-I ../polybench-c-mlir-3.2/utilities"]
+    main_version = 'c'
+    if version == "mlir":
+        main_version = 'mlir'
+        flags += ["-lm", "-O0"]
+    elif version == "pluto":
+        flags += ["-lm", "-O0"]
+    elif version == "polly":
+        flags += ["-lm", "-O3", "-mllvm", "-polly"]
+    else:
+        raise ValueError(f"Unknown version: {version}")
+    flags += ["../polybench-c-mlir-3.2/utilities/polybench.c"]
+    
+    parent = kernel_obj.parent
+    bench_name = parent.name
+    preprocessed_main_name =  bench_name + f'_prep_{main_version}.c'
+    preprocessed_main = parent / preprocessed_main_name
+    if not Path(preprocessed_main).exists():
+        print(f"Error: File {preprocessed_main} does not exist.")
+        return
+    output = parent / (bench_name + f'_main_{version}')
+    compile_command = [CLANG_PATH] + flags + [str(preprocessed_main), str(kernel_obj), "-o", str(output)]
+    run_command(compile_command)
+    if not Path(output).exists():
+        print(f"Error: Failed to generate {output}.")
+        return
+    
 def run_command(command: list[str]):
     """
     Executes a shell command.
@@ -67,7 +102,8 @@ def clean_mlir_generated_files(dir_name: Path, base_name: str):
     llvm_file = dir_name / f"{base_name}_mlir.ll"
     obj_file = dir_name / f"{base_name}_mlir.o"
     output_mlir = dir_name / f"{base_name}_mlir.mlir"
-    for file_to_remove in [llvm_file, obj_file, output_mlir]:
+    output = dir_name / (dir_name.name + f'_main_mlir')
+    for file_to_remove in [llvm_file, obj_file, output_mlir, output]:
         if file_to_remove.exists():
             file_to_remove.unlink()
 
@@ -82,7 +118,8 @@ def clean_pluto_generated_files(dir_name: Path, base_name: str):
     pluto_program = dir_name / f"{base_name}_pluto.c"
     pluto_output = dir_name / f"{base_name}_pluto.o"
     cloog_file = dir_name / f"{base_name}_pluto.pluto.cloog"
-    for file_to_remove in [pluto_program, pluto_output, cloog_file]:
+    output = dir_name / (dir_name.name + f'_main_pluto')
+    for file_to_remove in [pluto_program, pluto_output, cloog_file, output]:
         if file_to_remove.exists():
             file_to_remove.unlink()
 
@@ -95,7 +132,8 @@ def clean_polly_generated_files(dir_name: Path, base_name: str):
         base_name: Base name of the program (without extension).
     """
     polly_output = dir_name / f"{base_name}_polly.o"
-    for file_to_remove in [polly_output]:
+    output = dir_name / (dir_name.name + f'_main_polly')
+    for file_to_remove in [polly_output, output]:
         if file_to_remove.exists():
             file_to_remove.unlink()
             
@@ -125,7 +163,8 @@ def compile_mlir_program(program_dir: Path, base_name: str, opt_pipeline: list[s
     if not obj_file.exists():
         print(f"Error: Object file {obj_file} was not created.")
         return
-
+    compile_program(obj_file, "mlir")
+    
 def compile_mlir_programs(programs: list[str], opt_pipeline: list[str]):
     """
     Compiles multiple MLIR programs using the specified optimization pipeline.
@@ -157,6 +196,7 @@ def compile_pluto_program(program_path: Path, base_name: str):
     run_command(gen_pluto)
     run_command(move_cloog)
     run_command(compile_command)
+    compile_program(pluto_output, "pluto")
     
 def compile_pluto_programs(programs: list[str]):
     """
@@ -182,7 +222,8 @@ def compile_polly_program(program_path: Path, base_name: str):
     polly_output = program_path / f"{base_name}_polly.o"
     compile_command = [CLANG_PATH, "-O3", "-mllvm", "-polly", "-c", str(program_path / f"{base_name}.c"), "-o", str(polly_output)]
     run_command(compile_command)
-
+    compile_program(polly_output, "polly")
+    
 def compile_polly_programs(programs: list[str]):
     """
     Compiles multiple Polly programs.
