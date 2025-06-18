@@ -8,7 +8,7 @@ import sys
 MLIR_OPT_PATH = "mlir-opt"  # Path to your mlir-opt binary
 LLC_PATH = "llc"  # Path to your llc binary
 MLIR_TRANSLATE_PATH = "mlir-translate"  # Path to your mlir-translate binary
-PLUTO_PATH = "../pluto-0.13.0/polycc"  # Path to your pluto binary
+PLUTO_PATH = "../Pluto/polycc"  # Path to your pluto binary
 CLANG_PATH = "clang"  # Path to your clang binary
 
 def compile_program(kernel_obj, version):
