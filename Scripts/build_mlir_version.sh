@@ -61,12 +61,12 @@ for program in "${PROGRAMS[@]}"; do
     output_name="${dir_name}/${base_name}_llvm.mlir"
     
     if [[ "$1" == "clean" ]]; then
-        rm "${dir_name}/${base_name}.ll"
-        rm "${dir_name}/${base_name}.o"
+        rm "${dir_name}/${base_name}_mlir.ll"
+        rm "${dir_name}/${base_name}_mlir.o"
     else
         echo "Compiling $program..."
         mlir-opt "$program" $opt_pipeline -o "$output_name"
-        mlir-translate --mlir-to-llvmir "$output_name" -o "${dir_name}/${base_name}.ll"
-        llc -filetype=obj "${dir_name}/${base_name}.ll" -o "${dir_name}/${base_name}.o"
+        mlir-translate --mlir-to-llvmir "$output_name" -o "${dir_name}/${base_name}_mlir.ll"
+        llc -filetype=obj "${dir_name}/${base_name}.ll" -o "${dir_name}/${base_name}_mlir.o"
     fi
 done

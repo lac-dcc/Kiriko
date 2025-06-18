@@ -2,6 +2,7 @@ import os
 import subprocess
 import argparse
 from pathlib import Path
+from runPerf import run_perf_stat
 import sys
 
 MLIR_OPT_PATH = "mlir-opt"  # Path to your mlir-opt binary
@@ -18,7 +19,7 @@ def compile_program(kernel_obj, version):
         kernel_obj: Path to the kernel object file.
         version: Version of the compiler to use (e.g., "mlir", "pluto", "polly").
     """
-    flags = ["-I ../polybench-c-mlir-3.2/utilities"]
+    flags = ["-DPOLYBENCH_TIME -I ../polybench-c-mlir-3.2/utilities"]
     main_version = 'c'
     if version == "mlir":
         main_version = 'mlir'
@@ -236,10 +237,28 @@ def compile_polly_programs(programs: list[str]):
         program_path = Path(program_path_str)
         base_name = program_path.stem + "_kernel"
         compile_polly_program(program_path, base_name)
-        
-def main(clean_mode=False):
+
+def run_benchmarks(programs: list, version: str, output_file: Path):
+    """
+    Runs the benchmark for a given program and version.
+
+    Args:
+        programs (list): List of program directories to compile.
+        version (str): Version of the compiler used (e.g., "mlir", "pluto", "polly").
+    """
+    for program_path in programs:
+        program_name = Path(program_path).name+ f'_main_{version}'
+        prog_bin = Path(program_path) /  program_name
+        if not prog_bin.exists():
+            print(f"Error: Output file {prog_bin} does not exist.")
+            return
+        run_perf_stat(prog_bin, output_file + f'_{version}.csv')
+
+
+def main(output_file, clean_mode=False):
     # Get the directory where the script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_file = '../' + output_file
     os.chdir(script_dir)
 
     # List of programs to compile
@@ -303,6 +322,10 @@ def main(clean_mode=False):
     compile_pluto_programs(programs)
     compile_polly_programs(programs)
     
+    run_benchmarks(programs, "mlir", output_file)
+    run_benchmarks(programs, "pluto", output_file)
+    run_benchmarks(programs, "polly", output_file)
+    
 if __name__ == "__main__":
     # Set up argument parsing
     parser = argparse.ArgumentParser(
@@ -315,6 +338,13 @@ if __name__ == "__main__":
         action="store_true",
         help="Clean generated files (.ll, .o, _mlir.mlir)."
     )
+    parser.add_argument(
+        "--output_name",
+        type=str,
+        default="results",
+        help="Output CSV file for performance results."
+    )
+    
 
     args = parser.parse_args()
-    main(args.clean)
+    main(args.output_name, args.clean)

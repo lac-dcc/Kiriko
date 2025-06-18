@@ -3276,7 +3276,6 @@ int main(int argc, char **argv) {
   init_array(nx, ny, *A, *x);
 
   polybench_timer_start();
-  printf("Running kernel_atax...\n");
 
   kernel_atax(nx, ny, A, A, 0, nx, ny, ny, 1, // buffer A
               x, x, 0, ny, 1,                 // buffer x
