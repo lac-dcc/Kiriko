@@ -10,6 +10,7 @@ LLC_PATH = "llc"  # Path to your llc binary
 MLIR_TRANSLATE_PATH = "mlir-translate"  # Path to your mlir-translate binary
 PLUTO_PATH = "../Pluto/polycc"  # Path to your pluto binary
 CLANG_PATH = "clang"  # Path to your clang binary
+OPT_PATH = "opt"  # Path to your opt binary
 
 def compile_program(kernel_obj, version):
     """
@@ -23,9 +24,9 @@ def compile_program(kernel_obj, version):
     main_version = 'c'
     if version == "mlir":
         main_version = 'mlir'
-        flags += ["-lm", "-O0"]
+        flags += ["-lm", "-O3"]
     elif version == "pluto":
-        flags += ["-lm", "-O0"]
+        flags += ["-lm", "-O3"]
     elif version == "polly":
         flags += ["-lm", "-O3", "-mllvm", "-polly"]
     else:
@@ -46,7 +47,7 @@ def compile_program(kernel_obj, version):
         print(f"Error: Failed to generate {output}.")
         return
     
-def run_command(command: list[str]):
+def run_command(command):
     """
     Executes a shell command.
 
@@ -58,7 +59,7 @@ def run_command(command: list[str]):
     except subprocess.CalledProcessError as e:
         print(f"Error executing command: {e}", file=sys.stderr)
 
-def compile_mlir_to_llvm_mlir(input_mlir: Path, output_mlir: Path, opt_pipeline: list[str]):
+def compile_mlir_to_llvm_mlir(input_mlir: Path, output_mlir: Path, opt_pipeline, lowering_pipeline):
     """
     Compiles an input MLIR file to an MLIR file with LLVM dialect, applying the optimization pipeline.
 
@@ -66,9 +67,13 @@ def compile_mlir_to_llvm_mlir(input_mlir: Path, output_mlir: Path, opt_pipeline:
         input_mlir: Path to the input MLIR file.
         output_mlir: Path to the output MLIR file (with LLVM dialect).
         opt_pipeline: List of MLIR optimization pipeline stages.
+        lowering_pipeline: List of MLIR lowering passes to apply.
     """
-    mlir_opt_command = [MLIR_OPT_PATH, str(input_mlir)] + opt_pipeline + ["-o", str(output_mlir)]
+    opt_file_path = input_mlir.parent / f"opt_{input_mlir.name}"
+    mlir_opt_command = [MLIR_OPT_PATH, str(input_mlir)] + opt_pipeline + ["-o", str(opt_file_path)]
+    mlir_low_command = [MLIR_OPT_PATH, str(input_mlir)] + lowering_pipeline + ["-o", str(output_mlir)]
     run_command(mlir_opt_command)
+    run_command(mlir_low_command)
 
 def translate_mlir_to_llvmir(input_mlir: Path, output_ll: Path):
     """
@@ -78,8 +83,26 @@ def translate_mlir_to_llvmir(input_mlir: Path, output_ll: Path):
         input_mlir: Path to the input MLIR file (with LLVM dialect).
         output_ll: Path to the output LLVM IR file (.ll).
     """
-    mlir_translate_command = [MLIR_TRANSLATE_PATH, "--mlir-to-llvmir", str(input_mlir), "-o", str(output_ll)]
+
+    intermediate_ll = output_ll.with_suffix(".unoptimized.ll")
+    mlir_translate_command = [
+        MLIR_TRANSLATE_PATH,
+        "--mlir-to-llvmir",
+        str(input_mlir),
+        "-o", str(intermediate_ll)
+    ]
     run_command(mlir_translate_command)
+
+    opt_command = [
+        OPT_PATH,
+        "-O3",
+        str(intermediate_ll),
+        "-o", str(output_ll)
+    ]
+    run_command(opt_command)
+
+    if intermediate_ll.exists():
+        intermediate_ll.unlink()
 
 def compile_llvmir_to_object(input_ll: Path, output_obj: Path):
     """
@@ -89,7 +112,7 @@ def compile_llvmir_to_object(input_ll: Path, output_obj: Path):
         input_ll: Path to the input LLVM IR file (.ll).
         output_obj: Path to the output object file (.o).
     """
-    llc_command = [LLC_PATH, "-filetype=obj", str(input_ll), "-o", str(output_obj)]
+    llc_command = [LLC_PATH, "-O3", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
     run_command(llc_command)
 
 def clean_mlir_generated_files(dir_name: Path, base_name: str):
@@ -103,8 +126,9 @@ def clean_mlir_generated_files(dir_name: Path, base_name: str):
     llvm_file = dir_name / f"{base_name}_mlir.ll"
     obj_file = dir_name / f"{base_name}_mlir.o"
     output_mlir = dir_name / f"{base_name}_mlir.mlir"
+    opt_mlir = dir_name / f"opt_{base_name}.mlir"
     output = dir_name / (dir_name.name + f'_main_mlir')
-    for file_to_remove in [llvm_file, obj_file, output_mlir, output]:
+    for file_to_remove in [llvm_file, obj_file, output_mlir, opt_mlir, output]:
         if file_to_remove.exists():
             file_to_remove.unlink()
 
@@ -138,21 +162,44 @@ def clean_polly_generated_files(dir_name: Path, base_name: str):
         if file_to_remove.exists():
             file_to_remove.unlink()
             
-def compile_mlir_program(program_dir: Path, base_name: str, opt_pipeline: list[str]):
+def compile_mlir_program(program_dir: Path, base_name: str):
     """
     Compiles a given MLIR program located in `program_dir` with the specified base name and optimization pipeline.
 
     Args:
         program_dir (Path): The directory containing the MLIR program files.
         base_name (str): The base name for the MLIR kernel file (without extension).
-        opt_pipeline (list[str]): The optimization pipeline to apply during compilation.
     """
+    opt_pipeline = [
+        "-affine-loop-normalize",
+        "-affine-loop-tile",
+        "-affine-loop-fusion",
+        "-affine-scalrep",
+        "-affine-loop-unroll",
+        "-affine-loop-unroll-jam",
+        "-affine-loop-invariant-code-motion",
+        "-canonicalize",
+        "-cse",
+        "-affine-parallelize"
+    ]
+    lowering_pipeline = [
+        "--lower-affine",
+        "--convert-scf-to-cf",
+        "--convert-cf-to-llvm",
+        "--convert-math-to-funcs",
+        "--convert-math-to-llvm",
+        "--convert-arith-to-llvm",
+        "--convert-func-to-llvm",
+        "--finalize-memref-to-llvm",
+        "-reconcile-unrealized-casts"
+    ]
+    
     mlir_kernel_file = program_dir / f"{base_name}.mlir"
     output_mlir = program_dir / f"{base_name}_mlir.mlir"
     llvm_file = program_dir / f"{base_name}_mlir.ll"
     obj_file = program_dir / f"{base_name}_mlir.o"
 
-    compile_mlir_to_llvm_mlir(mlir_kernel_file, output_mlir, opt_pipeline)
+    compile_mlir_to_llvm_mlir(mlir_kernel_file, output_mlir, opt_pipeline, lowering_pipeline)
     if not output_mlir.exists():
         print(f"Error: Output MLIR file {output_mlir} was not created.")
         return
@@ -166,19 +213,18 @@ def compile_mlir_program(program_dir: Path, base_name: str, opt_pipeline: list[s
         return
     compile_program(obj_file, "mlir")
     
-def compile_mlir_programs(programs: list[str], opt_pipeline: list[str]):
+def compile_mlir_programs(programs):
     """
     Compiles multiple MLIR programs using the specified optimization pipeline.
 
     Args:
         programs (list[str]): List of program directories to compile.
-        opt_pipeline (list[str]): The optimization pipeline to apply during compilation.
     """
     print("Compiling MLIR programs...")
     for program_path_str in programs:
         program_path = Path(program_path_str)
         base_name = program_path.stem + "_kernel"
-        compile_mlir_program(program_path, base_name, opt_pipeline)
+        compile_mlir_program(program_path, base_name)
 
 def compile_pluto_program(program_path: Path, base_name: str):
     """
@@ -199,7 +245,7 @@ def compile_pluto_program(program_path: Path, base_name: str):
     run_command(compile_command)
     compile_program(pluto_output, "pluto")
     
-def compile_pluto_programs(programs: list[str]):
+def compile_pluto_programs(programs):
     """
     Compiles multiple Pluto programs.
 
@@ -225,7 +271,7 @@ def compile_polly_program(program_path: Path, base_name: str):
     run_command(compile_command)
     compile_program(polly_output, "polly")
     
-def compile_polly_programs(programs: list[str]):
+def compile_polly_programs(programs):
     """
     Compiles multiple Polly programs.
 
@@ -295,18 +341,6 @@ def main(output_file, clean_mode=False):
         "../polybench-c-mlir-3.2/stencils/seidel-2d/",
     ]
 
-    opt_pipeline = [
-        "--lower-affine",
-        "--convert-scf-to-cf",
-        "--convert-cf-to-llvm",
-        "--convert-math-to-funcs",
-        "--convert-math-to-llvm",
-        "--convert-arith-to-llvm",
-        "--convert-func-to-llvm",
-        "--finalize-memref-to-llvm",
-        "-reconcile-unrealized-casts"
-    ]
-
     if clean_mode:
         print("Cleaning up generated files...")
         for program_path_str in programs:
@@ -318,7 +352,7 @@ def main(output_file, clean_mode=False):
         print("Cleanup completed.")
         return
 
-    compile_mlir_programs(programs, opt_pipeline)
+    compile_mlir_programs(programs)
     compile_pluto_programs(programs)
     compile_polly_programs(programs)
     
