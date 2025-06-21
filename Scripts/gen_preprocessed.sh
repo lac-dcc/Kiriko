@@ -2,7 +2,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Define common flags and paths
-INCLUDE_FLAGS="-I utilities -I linear-algebra/kernels/atax"
+INCLUDE_FLAGS="-I ../polybench-c-mlir-3.2/utilities"
 COMPILE_FLAGS="-DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS"
 
 PROGRAMS=(
