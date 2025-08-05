@@ -26,7 +26,7 @@ def compile_program(kernel_obj, version):
         main_version = 'mlir'
         flags += ["-lm", "-O3"]
     elif version == "pluto":
-        flags += ["-lm", "-O3"]
+        flags += ["-lm", "-O3", "-fopenmp"]
     elif version == "polly":
         flags += ["-lm", "-O3", "-mllvm", "-polly"]
     else:
@@ -112,7 +112,7 @@ def compile_llvmir_to_object(input_ll: Path, output_obj: Path):
         input_ll: Path to the input LLVM IR file (.ll).
         output_obj: Path to the output object file (.o).
     """
-    llc_command = [LLC_PATH, "-O3", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
+    llc_command = [LLC_PATH, "-O3", "-fopenmp", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
     run_command(llc_command)
 
 def clean_mlir_generated_files(dir_name: Path, base_name: str):
@@ -239,7 +239,7 @@ def compile_pluto_program(program_path: Path, base_name: str):
 
     gen_pluto = [PLUTO_PATH, str(program_path / f"{base_name}.c"), "--silent", "-o", str(pluto_program)]
     move_cloog = ["mv", f"{base_name}_pluto.pluto.cloog", str(program_path)]
-    compile_command = [CLANG_PATH, "-O0", "-c", str(pluto_program), "-o", str(pluto_output)]
+    compile_command = [CLANG_PATH, "-O0", "-fopenmp", "-c", str(pluto_program), "-o", str(pluto_output)]
     run_command(gen_pluto)
     run_command(move_cloog)
     run_command(compile_command)
@@ -267,7 +267,7 @@ def compile_polly_program(program_path: Path, base_name: str):
         base_name (str): The base name for the Polly kernel file (without extension).
     """
     polly_output = program_path / f"{base_name}_polly.o"
-    compile_command = [CLANG_PATH, "-O3", "-mllvm", "-polly", "-c", str(program_path / f"{base_name}.c"), "-o", str(polly_output)]
+    compile_command = [CLANG_PATH, "-O3", "-mllvm", "-polly", "-fopenmp", "-c", str(program_path / f"{base_name}.c"), "-o", str(polly_output)]
     run_command(compile_command)
     compile_program(polly_output, "polly")
     
