@@ -71,7 +71,7 @@ def compile_mlir_to_llvm_mlir(input_mlir: Path, output_mlir: Path, opt_pipeline,
     """
     opt_file_path = input_mlir.parent / f"opt_{input_mlir.name}"
     mlir_opt_command = [MLIR_OPT_PATH, str(input_mlir)] + opt_pipeline + ["-o", str(opt_file_path)]
-    mlir_low_command = [MLIR_OPT_PATH, str(input_mlir)] + lowering_pipeline + ["-o", str(output_mlir)]
+    mlir_low_command = [MLIR_OPT_PATH, str(opt_file_path)] + lowering_pipeline + ["-o", str(output_mlir)]
     run_command(mlir_opt_command)
     run_command(mlir_low_command)
 
@@ -112,7 +112,7 @@ def compile_llvmir_to_object(input_ll: Path, output_obj: Path):
         input_ll: Path to the input LLVM IR file (.ll).
         output_obj: Path to the output object file (.o).
     """
-    llc_command = [LLC_PATH, "-O3", "-fopenmp", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
+    llc_command = [LLC_PATH, "-O3", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
     run_command(llc_command)
 
 def clean_mlir_generated_files(dir_name: Path, base_name: str):
