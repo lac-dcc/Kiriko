@@ -112,7 +112,7 @@ def compile_llvmir_to_object(input_ll: Path, output_obj: Path):
         input_ll: Path to the input LLVM IR file (.ll).
         output_obj: Path to the output object file (.o).
     """
-    llc_command = [LLC_PATH, "-O3", "-fopenmp", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
+    llc_command = [LLC_PATH, "-O3", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
     run_command(llc_command)
 
 def clean_mlir_generated_files(dir_name: Path, base_name: str):
