@@ -12,7 +12,7 @@ PLUTO_PATH = "../Pluto/polycc"  # Path to your pluto binary
 CLANG_PATH = "clang"  # Path to your clang binary
 OPT_PATH = "opt"  # Path to your opt binary
 
-def compile_program(kernel_obj, version):
+def compile_program(kernel_obj, version, n):
     """
     Compiles a given kernel object file with the specified version.
 
@@ -24,7 +24,7 @@ def compile_program(kernel_obj, version):
     main_version = 'c'
     if version == "mlir":
         main_version = 'mlir'
-        flags += ["-lm", "-O3"]
+        flags += ["-lm", "-O0"]
     elif version == "pluto":
         flags += ["-lm", "-O3", "-fopenmp"]
     elif version == "polly":
@@ -40,7 +40,7 @@ def compile_program(kernel_obj, version):
     if not Path(preprocessed_main).exists():
         print(f"Error: File {preprocessed_main} does not exist.")
         return
-    output = parent / (bench_name + f'_main_{version}')
+    output = parent / (bench_name + f'{n}_main_{version}')
     compile_command = [CLANG_PATH] + flags + [str(preprocessed_main), str(kernel_obj), "-o", str(output)]
     run_command(compile_command)
     if not Path(output).exists():
@@ -69,7 +69,7 @@ def compile_mlir_to_llvm_mlir(input_mlir: Path, output_mlir: Path, opt_pipeline,
         opt_pipeline: List of MLIR optimization pipeline stages.
         lowering_pipeline: List of MLIR lowering passes to apply.
     """
-    opt_file_path = input_mlir.parent / f"opt_{input_mlir.name}"
+    opt_file_path = input_mlir.parent / f"opt_{output_mlir.name}"
     mlir_opt_command = [MLIR_OPT_PATH, str(input_mlir)] + opt_pipeline + ["-o", str(opt_file_path)]
     mlir_low_command = [MLIR_OPT_PATH, str(opt_file_path)] + lowering_pipeline + ["-o", str(output_mlir)]
     run_command(mlir_opt_command)
@@ -95,7 +95,7 @@ def translate_mlir_to_llvmir(input_mlir: Path, output_ll: Path):
 
     opt_command = [
         OPT_PATH,
-        "-O3",
+        "-O0",
         str(intermediate_ll),
         "-o", str(output_ll)
     ]
@@ -112,7 +112,7 @@ def compile_llvmir_to_object(input_ll: Path, output_obj: Path):
         input_ll: Path to the input LLVM IR file (.ll).
         output_obj: Path to the output object file (.o).
     """
-    llc_command = [LLC_PATH, "-O3", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
+    llc_command = [LLC_PATH, "-O0", "-filetype=obj", str(input_ll), "-o", str(output_obj)]
     run_command(llc_command)
 
 def clean_mlir_generated_files(dir_name: Path, base_name: str):
@@ -162,7 +162,7 @@ def clean_polly_generated_files(dir_name: Path, base_name: str):
         if file_to_remove.exists():
             file_to_remove.unlink()
             
-def compile_mlir_program(program_dir: Path, base_name: str):
+def compile_mlir_program(program_dir: Path, base_name: str, n):
     """
     Compiles a given MLIR program located in `program_dir` with the specified base name and optimization pipeline.
 
@@ -171,16 +171,16 @@ def compile_mlir_program(program_dir: Path, base_name: str):
         base_name (str): The base name for the MLIR kernel file (without extension).
     """
     opt_pipeline = [
-        "-affine-loop-normalize",
-        "-affine-loop-tile",
-        "-affine-loop-fusion",
-        "-affine-scalrep",
-        "-affine-loop-unroll",
-        "-affine-loop-unroll-jam",
-        "-affine-loop-invariant-code-motion",
-        "-canonicalize",
-        "-cse",
-        "-affine-parallelize"
+        # "-affine-loop-normalize",
+        f"-affine-loop-tile=tile-size={n}",
+        # "-affine-loop-fusion",
+        # "-affine-scalrep",
+        # "-affine-loop-unroll",
+        # "-affine-loop-unroll-jam",
+        # "-affine-loop-invariant-code-motion",
+        # "-canonicalize",
+        # "-cse",
+        # "-affine-parallelize"
     ]
     lowering_pipeline = [
         "--lower-affine",
@@ -193,8 +193,8 @@ def compile_mlir_program(program_dir: Path, base_name: str):
         "--finalize-memref-to-llvm",
         "-reconcile-unrealized-casts"
     ]
-    
-    mlir_kernel_file = program_dir / f"{base_name}.mlir"
+
+    mlir_kernel_file = program_dir / f"{base_name}.mlir".replace(f"{n}_kernel", "_kernel")
     output_mlir = program_dir / f"{base_name}_mlir.mlir"
     llvm_file = program_dir / f"{base_name}_mlir.ll"
     obj_file = program_dir / f"{base_name}_mlir.o"
@@ -211,7 +211,7 @@ def compile_mlir_program(program_dir: Path, base_name: str):
     if not obj_file.exists():
         print(f"Error: Object file {obj_file} was not created.")
         return
-    compile_program(obj_file, "mlir")
+    compile_program(obj_file, "mlir", n)
     
 def compile_mlir_programs(programs):
     """
@@ -223,8 +223,9 @@ def compile_mlir_programs(programs):
     print("Compiling MLIR programs...")
     for program_path_str in programs:
         program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_mlir_program(program_path, base_name)
+        for i in range(1, 257, 1):
+            base_name = program_path.stem + f"{i}_kernel"
+            compile_mlir_program(program_path, base_name, i)
 
 def compile_pluto_program(program_path: Path, base_name: str):
     """
@@ -293,12 +294,13 @@ def run_benchmarks(programs: list, version: str, output_file: Path):
         version (str): Version of the compiler used (e.g., "mlir", "pluto", "polly").
     """
     for program_path in programs:
-        program_name = Path(program_path).name+ f'_main_{version}'
-        prog_bin = Path(program_path) /  program_name
-        if not prog_bin.exists():
-            print(f"Error: Output file {prog_bin} does not exist.")
-            return
-        run_perf_stat(prog_bin, output_file + f'_{version}.csv')
+        for i in range(1, 257, 1):
+            program_name = Path(program_path).name+ f'{i}_main_{version}'
+            prog_bin = Path(program_path) /  program_name
+            if not prog_bin.exists():
+                print(f"Error: Output file {prog_bin} does not exist.")
+                return
+            run_perf_stat(prog_bin, output_file + f'_{version}.csv')
 
 
 def main(output_file, clean_mode=False):
@@ -309,36 +311,36 @@ def main(output_file, clean_mode=False):
 
     # List of programs to compile
     programs = [
-        "../polybench-c-mlir-3.2/datamining/correlation/",
-        "../polybench-c-mlir-3.2/datamining/covariance/",
+        # "../polybench-c-mlir-3.2/datamining/correlation/",
+        # "../polybench-c-mlir-3.2/datamining/covariance/",
         "../polybench-c-mlir-3.2/linear-algebra/kernels/2mm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/3mm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/atax/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/bicg/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/cholesky/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/doitgen/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/gemm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/trmm/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/durbin/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/dynprog/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/gramschmidt/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/lu/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/ludcmp/",
-        "../polybench-c-mlir-3.2/medley/floyd-warshall/",
-        "../polybench-c-mlir-3.2/medley/reg_detect/",
-        "../polybench-c-mlir-3.2/stencils/adi/",
-        "../polybench-c-mlir-3.2/stencils/fdtd-2d/",
-        "../polybench-c-mlir-3.2/stencils/fdtd-apml/",
-        "../polybench-c-mlir-3.2/stencils/jacobi-1d-imper/",
-        "../polybench-c-mlir-3.2/stencils/jacobi-2d-imper/",
-        "../polybench-c-mlir-3.2/stencils/seidel-2d/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/3mm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/atax/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/bicg/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/cholesky/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/doitgen/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gemm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/trmm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/durbin/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/dynprog/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/gramschmidt/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/lu/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/ludcmp/",
+        # "../polybench-c-mlir-3.2/medley/floyd-warshall/",
+        # "../polybench-c-mlir-3.2/medley/reg_detect/",
+        # "../polybench-c-mlir-3.2/stencils/adi/",
+        # "../polybench-c-mlir-3.2/stencils/fdtd-2d/",
+        # "../polybench-c-mlir-3.2/stencils/fdtd-apml/",
+        # "../polybench-c-mlir-3.2/stencils/jacobi-1d-imper/",
+        # "../polybench-c-mlir-3.2/stencils/jacobi-2d-imper/",
+        # "../polybench-c-mlir-3.2/stencils/seidel-2d/",
     ]
 
     if clean_mode:
@@ -353,12 +355,12 @@ def main(output_file, clean_mode=False):
         return
 
     compile_mlir_programs(programs)
-    compile_pluto_programs(programs)
-    compile_polly_programs(programs)
+    # compile_pluto_programs(programs)
+    # compile_polly_programs(programs)
     
     run_benchmarks(programs, "mlir", output_file)
-    run_benchmarks(programs, "pluto", output_file)
-    run_benchmarks(programs, "polly", output_file)
+    # run_benchmarks(programs, "pluto", output_file)
+    # run_benchmarks(programs, "polly", output_file)
     
 if __name__ == "__main__":
     # Set up argument parsing
