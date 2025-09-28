@@ -3248,13 +3248,13 @@ static void print_array(int nr, int nq, int np,
   fprintf(stderr, "\n");
 }
 
-extern void kernel_doitgen(long nr, long nq, long np, double *aligned_A,
-                           double *A, long offset_A, long size_A_0,
+extern void kernel_doitgen(long nr, long nq, long np, double aligned_A[128 + 0][128 + 0][128 + 0],
+                           double A[128 + 0][128 + 0][128 + 0], long offset_A, long size_A_0,
                            long size_A_1, long size_A_2, long stride_A_0,
-                           long stride_A_1, long stride_A_2, double *aligned_C4,
-                           double *C4, long offset_C4, long size_C4_0,
+                           long stride_A_1, long stride_A_2, double aligned_C4[128 + 0][128 + 0],
+                           double C4[128 + 0][128 + 0], long offset_C4, long size_C4_0,
                            long size_C4_1, long stride_C4_0, long stride_C4_1,
-                           double *aligned_sum, double *sum, long offset_sum,
+                           double aligned_sum[128 + 0][128 + 0][128 + 0], double sum[128 + 0][128 + 0][128 + 0], long offset_sum,
                            long size_sum_0, long size_sum_1, long size_sum_2,
                            long stride_sum_0, long stride_sum_1,
                            long stride_sum_2);
@@ -3283,8 +3283,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_doitgen(nr, nq, np, A, A, 0, nr, nq, np, nq * np, np, 1, C4, C4, 0, np,
-                 np, np, 1, sum, sum, 0, nr, nq, np, nq * np, np, 1);
+  kernel_doitgen(nr, nq, np, *A,*A, 0, nr, nq, np, nq * np, np, 1, *C4, *C4, 0, np,
+                 np, np, 1, *sum, *sum, 0, nr, nq, np, nq * np, np, 1);
 
   polybench_timer_stop();
   ;

@@ -3244,9 +3244,9 @@ static void print_array(int n, double A[1024 + 0][1024 + 0])
     }
 }
 
-void kernel_cholesky(int n, double *aligned_p, double *p, long offset_p,
-                     long size_x_p, long stride_p_0, double *aligned_A,
-                     double *A, long offset_A, long size_A_0, long size_A_1,
+void kernel_cholesky(int n, double aligned_p[1024 + 0], double p[1024 + 0], long offset_p,
+                     long size_x_p, long stride_p_0, double aligned_A[1024 + 0][1024 + 0],
+                     double A[1024 + 0][1024 + 0], long offset_A, long size_A_0, long size_A_1,
                      long stride_A_0, long stride_A_1);
 
 int main(int argc, char **argv) {
@@ -3266,7 +3266,7 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_cholesky(n, p, p, 0, n, 1, A, A, 0, n, n, n, 1);
+  kernel_cholesky(n, *p, *p, 0, n, 1, *A, *A, 0, n, n, n, 1);
 
   polybench_timer_stop();
   ;

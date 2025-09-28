@@ -3248,9 +3248,9 @@ static void print_array(int ni, double C[1024 + 0][1024 + 0]) {
 }
 
 extern void kernel_syrk(long n, long k, double alpha, double beta,
-                        double *aligned_C, double *C, long offset_C,
+                        double aligned_C[1024 + 0][1024 + 0], double C[1024 + 0][1024 + 0], long offset_C,
                         long size_C_0, long size_C_1, long stride_C_0,
-                        long stride_C_1, double *aligned_A, double *A,
+                        long stride_C_1, double aligned_A[1024 + 0][1024 + 0], double A[1024 + 0][1024 + 0],
                         long offset_A, long size_A_0, long size_A_1,
                         long stride_A_0, long stride_A_1);
 
@@ -3275,7 +3275,7 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_syrk(ni, nj, alpha, beta, C, C, 0, ni, ni, ni, 1, A, A, 0, ni, nj, nj,
+  kernel_syrk(ni, nj, alpha, beta, *C, *C, 0, ni, ni, ni, 1, *A, *A, 0, ni, nj, nj,
               1);
 
   polybench_timer_stop();

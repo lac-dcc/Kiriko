@@ -3251,18 +3251,17 @@ static void print_array(int ni, int nj, double C[1024 + 0][1024 + 0]) {
 }
 
 extern void kernel_symm(long m, long n, double alpha, double beta,
-                        double *aligned_C, double *C, long offset_C,
+                        double aligned_C[1024 + 0][1024 + 0], double C[1024 + 0][1024 + 0], long offset_C,
                         long size_C_0, long size_C_1, long stride_C_0,
-                        long stride_C_1, double *aligned_A, double *A,
+                        long stride_C_1, double aligned_A[1024 + 0][1024 + 0], double A[1024 + 0][1024 + 0],
                         long offset_A, long size_A_0, long size_A_1,
-                        long stride_A_0, long stride_A_1, double *aligned_B,
-                        double *B, long offset_B, long size_B_0, long size_B_1,
+                        long stride_A_0, long stride_A_1, double aligned_B[1024 + 0][1024 + 0],
+                        double B[1024 + 0][1024 + 0], long offset_B, long size_B_0, long size_B_1,
                         long stride_B_0, long stride_B_1
 
 );
 
 int main(int argc, char **argv) {
-
   int ni = 1024;
   int nj = 1024;
 
@@ -3285,9 +3284,9 @@ int main(int argc, char **argv) {
 
   polybench_timer_start();
   ;
-
-  kernel_symm(ni, nj, alpha, beta, C, C, 0, ni, nj, nj, 1, B, B, 0, ni, nj, nj,
-              1, A, A, 0, ni, ni, ni, 1);
+  
+  kernel_symm(ni, nj, alpha, beta, *C, *C, 0, ni, nj, nj, 1, *B, *B, 0, ni, nj, nj,
+    1, *A, *A, 0, ni, ni, ni, 1);
 
   polybench_timer_stop();
   ;

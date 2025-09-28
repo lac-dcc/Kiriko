@@ -3268,14 +3268,14 @@ extern void kernel_gramschmidt(
     long n, // %arg1: número de colunas
 
     // Matriz de entrada A: [m][n]
-    double *aligned_A, double *A, long offset_A, long size_A_0, long size_A_1,
+    double aligned_A[512 + 0][512 + 0], double A[512 + 0][512 + 0], long offset_A, long size_A_0, long size_A_1,
     long stride_A_0, long stride_A_1,
 
     // Matriz R: [n][n]
-    double *aligned_R, double *R, long offset_R, long size_R_0, long size_R_1,
+    double aligned_R[512 + 0][512 + 0], double R[512 + 0][512 + 0], long offset_R, long size_R_0, long size_R_1,
     long stride_R_0, long stride_R_1,
     // Matriz de saída Q: [m][n]
-    double *aligned_Q, double *Q, long offset_Q, long size_Q_0, long size_Q_1,
+    double aligned_Q[512 + 0][512 + 0], double Q[512 + 0][512 + 0], long offset_Q, long size_Q_0, long size_Q_1,
     long stride_Q_0, long stride_Q_1
 
 );
@@ -3305,9 +3305,9 @@ int main(int argc, char **argv) {
 
   kernel_gramschmidt(ni, nj,
                      // Matriz A
-                     A, A, 0, ni, nj, nj, 1,
+                     *A, *A, 0, ni, nj, nj, 1,
                      // Matriz Q
-                     R, R, 0, nj, nj, nj, 1, Q, Q, 0, ni, nj, nj, 1
+                     *R, *R, 0, nj, nj, nj, 1, *Q, *Q, 0, ni, nj, nj, 1
                      // Matriz R
   );
 

@@ -3251,21 +3251,21 @@ static void print_array(int n, double out[4000 + 0])
 extern void kernel_durbin(
     long n,
 
-    double *aligned_y, double *y, long offset_y, long size_y_0, long size_y_1,
+    double aligned_y[4000 + 0][4000 + 0], double y[4000 + 0][4000 + 0], long offset_y, long size_y_0, long size_y_1,
     long stride_y_0, long stride_y_1,
 
-    double *aligned_sum, double *sum, long offset_sum, long size_sum_0,
+    double aligned_sum[4000 + 0][4000 + 0], double sum[4000 + 0][4000 + 0], long offset_sum, long size_sum_0,
     long size_sum_1, long stride_sum_0, long stride_sum_1,
 
-    double *aligned_alpha, double *alpha, long offset_alpha, long size_alpha_0,
+    double aligned_alpha[4000 + 0], double alpha[4000 + 0], long offset_alpha, long size_alpha_0,
     long stride_alpha_0,
 
-    double *aligned_beta, double *beta, long offset_beta, long size_beta_0,
+    double aligned_beta[4000 + 0], double beta[4000 + 0], long offset_beta, long size_beta_0,
     long stride_beta_0,
 
-    double *aligned_r, double *r, long offset_r, long size_r_0, long stride_r_0,
+    double aligned_r[4000 + 0], double r[4000 + 0], long offset_r, long size_r_0, long stride_r_0,
 
-    double *aligned_z, double *z, long offset_z, long size_z_0, long stride_z_0
+    double aligned_z[4000 + 0], double z[4000 + 0], long offset_z, long size_z_0, long stride_z_0
 
 );
 
@@ -3299,8 +3299,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_durbin(n, y, y, 0, n, n, n, 1, sum, sum, 0, n, n, n, 1, alpha, alpha,
-                0, n, 1, beta, beta, 0, n, 1, r, r, 0, n, 1, out, out, 0, n, 1);
+  kernel_durbin(n, *y, *y, 0, n, n, n, 1, *sum, *sum, 0, n, n, n, 1, *alpha, *alpha,
+                0, n, 1, *beta, *beta, 0, n, 1, *r, *r, 0, n, 1, *out, *out, 0, n, 1);
 
   polybench_timer_stop();
   ;

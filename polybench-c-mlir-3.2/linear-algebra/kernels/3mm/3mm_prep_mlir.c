@@ -3253,19 +3253,19 @@ static void print_array(int ni, int nl, double G[1024 + 0][1024 + 0]) {
   fprintf(stderr, "\n");
 }
 
-void kernel_3mm(int ni, int nj, int nk, int nl, int nm, double *aligned_E,
-                double *E, long offset_E, long size_E_0, long size_E_1,
-                long stride_E_0, long stride_E_1, double *aligned_A, double *A,
+void kernel_3mm(int ni, int nj, int nk, int nl, int nm, double aligned_E[1024 + 0][1024 + 0],
+                double E[1024 + 0][1024 + 0], long offset_E, long size_E_0, long size_E_1,
+                long stride_E_0, long stride_E_1, double aligned_A[1024 + 0][1024 + 0], double A[1024 + 0][1024 + 0],
                 long offset_A, long size_A_0, long size_A_1, long stride_A_0,
-                long stride_A_1, double *aligned_B, double *B, long offset_B,
+                long stride_A_1, double aligned_B[1024 + 0][1024 + 0], double B[1024 + 0][1024 + 0], long offset_B,
                 long size_B_0, long size_B_1, long stride_B_0, long stride_B_1,
-                double *aligned_F, double *F, long offset_F, long size_F_0,
+                double aligned_F[1024 + 0][1024 + 0], double F[1024 + 0][1024 + 0], long offset_F, long size_F_0,
                 long size_F_1, long stride_F_0, long stride_F_1,
-                double *aligned_C, double *C, long offset_C, long size_C_0,
+                double aligned_C[1024 + 0][1024 + 0], double C[1024 + 0][1024 + 0], long offset_C, long size_C_0,
                 long size_C_1, long stride_C_0, long stride_C_1,
-                double *aligned_D, double *D, long offset_D, long size_D_0,
+                double aligned_D[1024 + 0][1024 + 0], double D[1024 + 0][1024 + 0], long offset_D, long size_D_0,
                 long size_D_1, long stride_D_0, long stride_D_1,
-                double *aligned_G, double *G, long offset_G, long size_G_0,
+                double aligned_G[1024 + 0][1024 + 0], double G[1024 + 0][1024 + 0], long offset_G, long size_G_0,
                 long size_G_1, long stride_G_0, long stride_G_1);
 
 int main(int argc, char **argv) {
@@ -3310,9 +3310,9 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_3mm(ni, nj, nk, nl, nm, E, E, 0, ni, nj, nj, 1, A, A, 0, ni, nk, nk, 1,
-             B, B, 0, nk, nj, nj, 1, F, F, 0, nj, nl, nl, 1, C, C, 0, nj, nm,
-             nm, 1, D, D, 0, nm, nl, nl, 1, G, G, 0, ni, nl, nl, 1);
+  kernel_3mm(ni, nj, nk, nl, nm, *E, *E, 0, ni, nj, nj, 1, *A, *A, 0, ni, nk, nk, 1,
+             *B, *B, 0, nk, nj, nj, 1, *F, *F, 0, nj, nl, nl, 1, *C, *C, 0, nj, nm,
+             nm, 1, *D, *D, 0, nm, nl, nl, 1, *G, *G, 0, ni, nl, nl, 1);
 
   polybench_timer_stop();
   ;

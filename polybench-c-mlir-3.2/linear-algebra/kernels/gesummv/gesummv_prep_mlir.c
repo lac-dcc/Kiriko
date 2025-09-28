@@ -3249,14 +3249,14 @@ static void print_array(int n, double y[4000 + 0])
 }
 
 extern void
-kernel_gesummv(long n, double alpha, double beta, double *aligned_A, double *A,
+kernel_gesummv(long n, double alpha, double beta, double aligned_A[4000 + 0][4000 + 0], double A[4000 + 0][4000 + 0],
                long offset_A, long size_A_0, long size_A_1, long stride_A_0,
-               long stride_A_1, double *aligned_B, double *B, long offset_B,
+               long stride_A_1, double aligned_B[4000 + 0][4000 + 0], double B[4000 + 0][4000 + 0], long offset_B,
                long size_B_0, long size_B_1, long stride_B_0, long stride_B_1,
-               double *aligned_tmp, double *tmp, long offset_tmp,
-               long size_tmp_0, long stride_tmp_0, double *aligned_x, double *x,
-               long offset_x, long size_x_0, long stride_x_0, double *aligned_y,
-               double *y, long offset_y, long size_y_0, long stride_y_0
+               double aligned_tmp[4000 + 0], double tmp[4000 + 0], long offset_tmp,
+               long size_tmp_0, long stride_tmp_0, double aligned_x[4000 + 0], double x[4000 + 0],
+               long offset_x, long size_x_0, long stride_x_0, double aligned_y[4000 + 0],
+               double y[4000 + 0], long offset_y, long size_y_0, long stride_y_0
 
 );
 
@@ -3289,8 +3289,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_gesummv(n, alpha, beta, A, A, 0, n, n, n, 1, B, B, 0, n, n, n, 1, tmp,
-                 tmp, 0, n, 1, x, x, 0, n, 1, y, y, 0, n, 1);
+  kernel_gesummv(n, alpha, beta, *A, *A, 0, n, n, n, 1, *B, *B, 0, n, n, n, 1, *tmp,
+                 *tmp, 0, n, 1, *x, *x, 0, n, 1, *y, *y, 0, n, 1);
 
   polybench_timer_stop();
   ;

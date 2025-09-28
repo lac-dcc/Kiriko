@@ -3282,33 +3282,33 @@ extern void kernel_fdtd_apml(
     int cz, int cxm, int cym, double mui, double ch,
 
     // 2D arrays (257x257)
-    double *aligned_Ax, double *Ax, long offset_Ax, long size_Ax_0,
-    long size_Ax_1, long stride_Ax_0, long stride_Ax_1, double *aligned_Ry,
-    double *Ry, long offset_Ry, long size_Ry_0, long size_Ry_1,
-    long stride_Ry_0, long stride_Ry_1, double *aligned_clf, double *clf,
+    double aligned_Ax[256 + 1 + 0][256 + 1 + 0], double Ax[256 + 1 + 0][256 + 1 + 0], long offset_Ax, long size_Ax_0,
+    long size_Ax_1, long stride_Ax_0, long stride_Ax_1, double aligned_Ry[256 + 1 + 0][256 + 1 + 0],
+    double Ry[256 + 1 + 0][256 + 1 + 0], long offset_Ry, long size_Ry_0, long size_Ry_1,
+    long stride_Ry_0, long stride_Ry_1, double aligned_clf[256 + 1 + 0][256 + 1 + 0], double clf[256 + 1 + 0][256 + 1 + 0],
     long offset_clf, long size_clf_0, long size_clf_1, long stride_clf_0,
-    long stride_clf_1, double *aligned_tmp, double *tmp, long offset_tmp,
+    long stride_clf_1, double aligned_tmp[256 + 1 + 0][256 + 1 + 0], double tmp[256 + 1 + 0][256 + 1 + 0], long offset_tmp,
     long size_tmp_0, long size_tmp_1, long stride_tmp_0, long stride_tmp_1,
 
     // 3D arrays (257x257x257)
-    double *aligned_Bza, double *Bza, long offset_Bza, long size_Bza_0,
+    double aligned_Bza[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0], double Bza[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0], long offset_Bza, long size_Bza_0,
     long size_Bza_1, long size_Bza_2, long stride_Bza_0, long stride_Bza_1,
-    long stride_Bza_2, double *aligned_Ex, double *Ex, long offset_Ex,
+    long stride_Bza_2, double aligned_Ex[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0], double Ex[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0], long offset_Ex,
     long size_Ex_0, long size_Ex_1, long size_Ex_2, long stride_Ex_0,
-    long stride_Ex_1, long stride_Ex_2, double *aligned_Ey, double *Ey,
+    long stride_Ex_1, long stride_Ex_2, double aligned_Ey[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0], double Ey[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0],
     long offset_Ey, long size_Ey_0, long size_Ey_1, long size_Ey_2,
-    long stride_Ey_0, long stride_Ey_1, long stride_Ey_2, double *aligned_Hz,
-    double *Hz, long offset_Hz, long size_Hz_0, long size_Hz_1, long size_Hz_2,
+    long stride_Ey_0, long stride_Ey_1, long stride_Ey_2, double aligned_Hz[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0],
+    double Hz[256 + 1 + 0][256 + 1 + 0][256 + 1 + 0], long offset_Hz, long size_Hz_0, long size_Hz_1, long size_Hz_2,
     long stride_Hz_0, long stride_Hz_1, long stride_Hz_2,
 
     // 1D arrays (257)
-    double *aligned_czm, double *czm, long offset_czm, long size_czm_0,
-    long stride_czm_0, double *aligned_czp, double *czp, long offset_czp,
-    long size_czp_0, long stride_czp_0, double *aligned_cxmh, double *cxmh,
+    double aligned_czm[256 + 1 + 0], double czm[256 + 1 + 0], long offset_czm, long size_czm_0,
+    long stride_czm_0, double aligned_czp[256 + 1 + 0], double czp[256 + 1 + 0], long offset_czp,
+    long size_czp_0, long stride_czp_0, double aligned_cxmh[256 + 1 + 0], double cxmh[256 + 1 + 0],
     long offset_cxmh, long size_cxmh_0, long stride_cxmh_0,
-    double *aligned_cxph, double *cxph, long offset_cxph, long size_cxph_0,
-    long stride_cxph_0, double *aligned_cymh, double *cymh, long offset_cymh,
-    long size_cymh_0, long stride_cymh_0, double *aligned_cyph, double *cyph,
+    double aligned_cxph[256 + 1 + 0], double cxph[256 + 1 + 0], long offset_cxph, long size_cxph_0,
+    long stride_cxph_0, double aligned_cymh[256 + 1 + 0], double cymh[256 + 1 + 0], long offset_cymh,
+    long size_cymh_0, long stride_cymh_0, double aligned_cyph[256 + 1 + 0], double cyph[256 + 1 + 0],
     long offset_cyph, long size_cyph_0, long stride_cyph_0);
 
 int main(int argc, char **argv) {
@@ -3383,14 +3383,14 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_fdtd_apml(cz, cxm, cym, mui, ch, Ax, Ax, 0, cz, cym, cym, 1, Ry, Ry, 0,
-                   cym, cxm, cxm, 1, clf, clf, 0, cym, cxm, cxm, 1, tmp, tmp, 0,
-                   cym, cxm, cxm, 1, Bza, Bza, 0, cz, cym, cxm, (cz) * (cxm),
-                   cxm, 1, Ex, Ex, 0, cz, cym, cxm, (cz) * (cxm), cxm, 1, Ey,
-                   Ey, 0, cz, cym, cxm, (cz) * (cxm), cxm, 1, Hz, Hz, 0, cz,
-                   cym, cxm, (cz) * (cxm), cxm, 1, czm, czm, 0, cz, 1, czp, czp,
-                   0, cz, 1, cxmh, cxmh, 0, cxm, 1, cxph, cxph, 0, cxm, 1, cymh,
-                   cymh, 0, cym, 1, cyph, cyph, 0, cym, 1);
+  kernel_fdtd_apml(cz, cxm, cym, mui, ch, *Ax, *Ax, 0, cz, cym, cym, 1, *Ry, *Ry, 0,
+                   cym, cxm, cxm, 1, *clf, *clf, 0, cym, cxm, cxm, 1, *tmp, *tmp, 0,
+                   cym, cxm, cxm, 1, *Bza, *Bza, 0, cz, cym, cxm, (cz) * (cxm),
+                   cxm, 1, *Ex, *Ex, 0, cz, cym, cxm, (cz) * (cxm), cxm, 1, *Ey,
+                   *Ey, 0, cz, cym, cxm, (cz) * (cxm), cxm, 1, *Hz, *Hz, 0, cz,
+                   cym, cxm, (cz) * (cxm), cxm, 1, *czm, *czm, 0, cz, 1, *czp, *czp,
+                   0, cz, 1, *cxmh, *cxmh, 0, cxm, 1, *cxph, *cxph, 0, cxm, 1, *cymh,
+                   *cymh, 0, cym, 1, *cyph, *cyph, 0, cym, 1);
 
   polybench_timer_stop();
   ;

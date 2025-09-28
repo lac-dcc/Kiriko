@@ -3242,10 +3242,10 @@ static void print_array(int n, double A[10000 + 0])
   fprintf(stderr, "\n");
 }
 
-extern void kernel_jacobi_1d_imper(int n, int tsteps, double *aligned_A,
-                                   double *A, long offset_A, long size_A_0,
-                                   long stride_A_0, double *aligned_B,
-                                   double *B, long offset_B, long size_B_0,
+extern void kernel_jacobi_1d_imper(int n, int tsteps, double aligned_A[10000 + 0],
+                                   double A[10000 + 0], long offset_A, long size_A_0,
+                                   long stride_A_0, double aligned_B[10000 + 0],
+                                   double B[10000 + 0], long offset_B, long size_B_0,
                                    long stride_B_0);
 
 int main(int argc, char **argv) {
@@ -3265,7 +3265,7 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_jacobi_1d_imper(tsteps, n, A, A, 0, n, 1, B, B, 0, n, 1);
+  kernel_jacobi_1d_imper(tsteps, n, *A, *A, 0, n, 1, *B, *B, 0, n, 1);
 
   polybench_timer_stop();
   ;

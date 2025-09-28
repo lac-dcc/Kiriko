@@ -3245,11 +3245,11 @@ static void print_array(int n, double A[1000 + 0][1000 + 0])
   fprintf(stderr, "\n");
 }
 
-extern void kernel_jacobi_2d_imper(int n, int tsteps, double *aligned_A,
-                                   double *A, long offset_A, long size_A_0,
+extern void kernel_jacobi_2d_imper(int n, int tsteps, double aligned_A[1000 + 0][1000 + 0],
+                                   double A[1000 + 0][1000 + 0], long offset_A, long size_A_0,
                                    long size_A_1, long stride_A_0,
-                                   long stride_A_1, double *aligned_B,
-                                   double *B, long offset_B, long size_B_0,
+                                   long stride_A_1, double aligned_B[1000 + 0][1000 + 0],
+                                   double B[1000 + 0][1000 + 0], long offset_B, long size_B_0,
                                    long size_B_1, long stride_B_0,
                                    long stride_B_1);
 
@@ -3272,7 +3272,7 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_jacobi_2d_imper(tsteps, n, A, A, 0, n, n, n, 1, B, B, 0, n, n, n, 1);
+  kernel_jacobi_2d_imper(tsteps, n, *A, *A, 0, n, n, n, 1, *B, *B, 0, n, n, n, 1);
 
   polybench_timer_stop();
   ;

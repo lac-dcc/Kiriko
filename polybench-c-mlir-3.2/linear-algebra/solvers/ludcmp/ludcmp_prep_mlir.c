@@ -3252,19 +3252,19 @@ extern void kernel_ludcmp(
     int n,
 
     // Matriz de entrada/saída [n][n]
-    double *aligned_A, double *A, long offset_A, long size_A_0, long size_A_1,
+    double aligned_A[1024 + 1 + 0][1024 + 1 + 0], double A[1024 + 1 + 0][1024 + 1 + 0], long offset_A, long size_A_0, long size_A_1,
     long stride_A_0, long stride_A_1,
 
     // Vetor de permutação [n]
-    double *aligned_indx, double *indx, long offset_indx, long size_indx_0,
+    double aligned_indx[1024 + 1 + 0], double indx[1024 + 1 + 0], long offset_indx, long size_indx_0,
     long stride_indx_0,
 
     // Vetor temporário vv [n]
-    double *aligned_vv, double *vv, long offset_vv, long size_vv_0,
+    double aligned_vv[1024 + 1 + 0], double vv[1024 + 1 + 0], long offset_vv, long size_vv_0,
     long stride_vv_0,
 
     // Escalar de saída d
-    double *aligned_d, double *d, long offset_d, long size_d_0,
+    double aligned_d[1024 + 1 + 0], double d[1024 + 1 + 0], long offset_d, long size_d_0,
     long stride_d_0);
 
 int main(int argc, char **argv) {

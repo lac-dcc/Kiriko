@@ -3238,17 +3238,17 @@ static void print_array(int out) {
 extern void
 kernel_dynprog(long tsteps, long length,
 
-               double *aligned_c, double *c, long offset_c, long size_c_0,
+               int aligned_c[50 + 0][50 + 0], int c[50 + 0][50 + 0], long offset_c, long size_c_0,
                long size_c_1, long stride_c_0, long stride_c_1,
 
-               double *aligned_W, double *W, long offset_W, long size_W_0,
+               int aligned_W[50 + 0][50 + 0], int W[50 + 0][50 + 0], long offset_W, long size_W_0,
                long size_W_1, long stride_W_0, long stride_W_1,
 
-               double *aligned_sum_c, double *sum_c, long offset_sum_c,
+               int aligned_sum_c[50 + 0][50 + 0][50 + 0], int sum_c[50 + 0][50 + 0][50 + 0], long offset_sum_c,
                long size_sum_c_0, long size_sum_c_1, long size_sum_c_2,
                long stride_sum_c_0, long stride_sum_c_1, long stride_sum_c_2,
 
-               double *aligned_out, double *out, long offset_out,
+               int *aligned_out, int *out, long offset_out,
                long size_out_0, long stride_out_0);
 
 int main(int argc, char **argv) {
@@ -3275,8 +3275,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_dynprog(tsteps, length, c, c, 0, length, length, length, 1, W, W, 0,
-                 length, length, length, 1, sum_c, sum_c, 0, length, length,
+  kernel_dynprog(tsteps, length, *c, *c, 0, length, length, length, 1, *W, *W, 0,
+                 length, length, length, 1, *sum_c, *sum_c, 0, length, length,
                  length, length * length, length, 1, &out, &out, 0, 1, 1);
 
   polybench_timer_stop();

@@ -3246,12 +3246,12 @@ static void print_array(int m, double symmat[1000 + 0][1000 + 0])
 }
 
 extern void kernel_correlation(
-    long m, long n, double alpha, double *aligned_data, double *data,
+    long m, long n, double alpha, double aligned_data[1000 + 0][1000 + 0], double data[1000 + 0][1000 + 0],
     long offset_data, long size_data_0, long size_data_1, long stride_data_0,
-    long stride_data_1, double *aligned_corr, double *corr, long offset_corr,
+    long stride_data_1, double aligned_corr[1000 + 0][1000 + 0], double corr[1000 + 0][1000 + 0], long offset_corr,
     long size_corr_0, long size_corr_1, long stride_corr_0, long stride_corr_1,
-    double *aligned_mean, double *mean, long offset_mean, long size_mean_0,
-    long stride_mean_0, double *aligned_stddev, double *stddev,
+    double aligned_mean[1000 + 0], double mean[1000 + 0], long offset_mean, long size_mean_0,
+    long stride_mean_0, double aligned_stddev[1000 + 0], double stddev[1000 + 0],
     long offset_stddev, long size_stddev_0, long stride_stddev_0);
 
 int main(int argc, char **argv) {
@@ -3280,8 +3280,8 @@ int main(int argc, char **argv) {
 
   polybench_timer_start();
   ;
-  kernel_correlation(m, n, float_n, data, data, 0, m, n, n, 1, symmat, symmat,
-                     0, m, n, n, 1, mean, mean, 0, m, 1, stddev, stddev, 0, m,
+  kernel_correlation(m, n, float_n, *data, *data, 0, m, n, n, 1, *symmat, *symmat,
+                     0, m, n, n, 1, *mean, *mean, 0, m, 1, *stddev, *stddev, 0, m,
                      1);
 
   polybench_timer_stop();

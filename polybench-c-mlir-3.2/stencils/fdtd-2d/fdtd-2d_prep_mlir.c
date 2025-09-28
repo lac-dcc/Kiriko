@@ -3251,15 +3251,15 @@ static void print_array(int nx, int ny, double ex[1000 + 0][1000 + 0],
   fprintf(stderr, "\n");
 }
 
-extern void kernel_fdtd_2d(int tmax, int nx, int ny, double *aligned_ex,
-                           double *ex, long offset_ex, long size_ex_0,
+extern void kernel_fdtd_2d(int tmax, int nx, int ny, double aligned_ex[1000 + 0][1000 + 0],
+                           double ex[1000 + 0][1000 + 0], long offset_ex, long size_ex_0,
                            long size_ex_1, long stride_ex_0, long stride_ex_1,
-                           double *aligned_ey, double *ey, long offset_ey,
+                           double aligned_ey[1000 + 0][1000 + 0], double ey[1000 + 0][1000 + 0], long offset_ey,
                            long size_ey_0, long size_ey_1, long stride_ey_0,
-                           long stride_ey_1, double *aligned_hz, double *hz,
+                           long stride_ey_1, double aligned_hz[1000 + 0][1000 + 0], double hz[1000 + 0][1000 + 0],
                            long offset_hz, long size_hz_0, long size_hz_1,
                            long stride_hz_0, long stride_hz_1,
-                           double *aligned_fict, double *fict, long offset_fict,
+                           double aligned_fict[50 + 0], double fict[50 + 0], long offset_fict,
                            long size_fict_0, long stride_fict_0);
 
 int main(int argc, char **argv) {
@@ -3289,8 +3289,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_fdtd_2d(tmax, nx, ny, ex, ex, 0, nx, ny, ny, 1, ey, ey, 0, nx, ny, ny,
-                 1, hz, hz, 0, nx, ny, ny, 1, _fict_, _fict_, 0, tmax, 1);
+  kernel_fdtd_2d(tmax, nx, ny, *ex, *ex, 0, nx, ny, ny, 1, *ey, *ey, 0, nx, ny, ny,
+                 1, *hz, *hz, 0, nx, ny, ny, 1, *_fict_, *_fict_, 0, tmax, 1);
 
   polybench_timer_stop();
   ;

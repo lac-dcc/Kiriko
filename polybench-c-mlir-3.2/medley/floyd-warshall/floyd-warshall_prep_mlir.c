@@ -3242,7 +3242,7 @@ static void print_array(int n, double path[1024 + 0][1024 + 0])
   fprintf(stderr, "\n");
 }
 
-extern void kernel_floyd_warshall(long n, double *aligned_dist, double *dist,
+extern void kernel_floyd_warshall(long n, double aligned_dist[1024 + 0][1024 + 0], double dist[1024 + 0][1024 + 0],
                                   long offset_dist, long size_dist_0,
                                   long size_dist_1, long stride_dist_0,
                                   long stride_dist_1);
@@ -3261,7 +3261,7 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_floyd_warshall(n, path, path, 0, n, n, n, 1);
+  kernel_floyd_warshall(n, *path, *path, 0, n, n, n, 1);
 
   polybench_timer_stop();
   ;

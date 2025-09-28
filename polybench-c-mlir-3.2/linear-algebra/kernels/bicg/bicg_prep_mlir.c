@@ -3251,13 +3251,13 @@ static void print_array(int nx, int ny, double s[4000 + 0], double q[4000 + 0])
   fprintf(stderr, "\n");
 }
 
-void kernel_bicg(int nx, int ny, double *aligned_A, double *A, long offset_A,
+void kernel_bicg(int nx, int ny, double aligned_A[4000 + 0][4000 + 0], double A[4000 + 0][4000 + 0], long offset_A,
                  long size_A_0, long size_A_1, long stride_A_0, long stride_A_1,
-                 double *aligned_s, double *s, long offset_s, long size_s_0,
-                 long stride_s_0, double *aligned_q, double *q, long offset_q,
-                 long size_q_0, long stride_q_0, double *aligned_p, double *p,
+                 double aligned_s[4000 + 0], double s[4000 + 0], long offset_s, long size_s_0,
+                 long stride_s_0, double aligned_q[4000 + 0], double q[4000 + 0], long offset_q,
+                 long size_q_0, long stride_q_0, double aligned_p[4000 + 0], double p[4000 + 0],
                  long offset_p, long size_p_0, long stride_p_0,
-                 double *aligned_r, double *r, long offset_r, long size_r_0,
+                 double aligned_r[4000 + 0], double r[4000 + 0], long offset_r, long size_r_0,
                  long stride_r_0);
 
 int main(int argc, char **argv) {
@@ -3287,8 +3287,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_bicg(nx, ny, A, A, 0, nx, ny, ny, 1, s, s, 0, ny, 1, q, q, 0, nx, 1, p,
-              p, 0, ny, 1, r, r, 0, nx, 1);
+  kernel_bicg(nx, ny, *A, *A, 0, nx, ny, ny, 1, *s, *s, 0, ny, 1, *q, *q, 0, nx, 1, *p,
+              *p, 0, ny, 1, *r, *r, 0, nx, 1);
 
   polybench_timer_stop();
   ;

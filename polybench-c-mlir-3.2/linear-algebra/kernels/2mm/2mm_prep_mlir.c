@@ -3257,20 +3257,20 @@ static void print_array(int ni, int nl, double D[1024 + 0][1024 + 0]) {
 
 void kernel_2mm(int ni, int nj, int nk, int nl, double alpha, double beta,
                 // tmp (3D)
-                double *aligned_tmp, double *tmp, long offset_tmp,
+                double aligned_tmp[1024 + 0][1024 + 0], double tmp[1024 + 0][1024 + 0], long offset_tmp,
                 long size_tmp_0, long size_tmp_1, long stride_tmp_0,
                 long stride_tmp_1,
                 // A (3D)
-                double *aligned_A, double *A, long offset_A, long size_A_0,
+                double aligned_A[1024 + 0][1024 + 0], double A[1024 + 0][1024 + 0], long offset_A, long size_A_0,
                 long size_A_1, long stride_A_0, long stride_A_1,
                 // B (3D)
-                double *aligned_B, double *B, long offset_B, long size_B_0,
+                double aligned_B[1024 + 0][1024 + 0], double B[1024 + 0][1024 + 0], long offset_B, long size_B_0,
                 long size_B_1, long stride_B_0, long stride_B_1,
                 // C (3D)
-                double *aligned_C, double *C, long offset_C, long size_C_0,
+                double aligned_C[1024 + 0][1024 + 0], double C[1024 + 0][1024 + 0], long offset_C, long size_C_0,
                 long size_C_1, long stride_C_0, long stride_C_1,
                 // D (3D)
-                double *aligned_D, double *D, long offset_D, long size_D_0,
+                double aligned_D[1024 + 0][1024 + 0], double D[1024 + 0][1024 + 0], long offset_D, long size_D_0,
                 long size_D_1, long stride_D_0, long stride_D_1);
 
 int main(int argc, char **argv) {
@@ -3310,15 +3310,15 @@ int main(int argc, char **argv) {
 
   kernel_2mm(ni, nj, nk, nl, alpha, beta,
              // tmp (assumindo array contíguo em linha-major)
-             tmp, tmp, 0, ni, nj, nj, 1,
+             *tmp, *tmp, 0, ni, nj, nj, 1,
              // A
-             A, A, 0, ni, nk, nk, 1,
+             *A, *A, 0, ni, nk, nk, 1,
              // B
-             B, B, 0, nk, nj, nj, 1,
+             *B, *B, 0, nk, nj, nj, 1,
              // C
-             C, C, 0, nj, nl, nl, 1,
+             *C, *C, 0, nj, nl, nl, 1,
              // D
-             D, D, 0, ni, nl, nl, 1);
+             *D, *D, 0, ni, nl, nl, 1);
 
   polybench_timer_stop();
   ;

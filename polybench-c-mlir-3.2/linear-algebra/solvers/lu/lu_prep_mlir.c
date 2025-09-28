@@ -3247,7 +3247,7 @@ extern void kernel_lu(
     long n,
 
     // Input/output matrix: [n][n]
-    double *aligned_A, double *A, long offset_A, long size_A_0, long size_A_1,
+    double aligned_A[1024 + 0][1024 + 0], double A[1024 + 0][1024 + 0], long offset_A, long size_A_0, long size_A_1,
     long stride_A_0, long stride_A_1);
 
 int main(int argc, char **argv) {
@@ -3266,7 +3266,7 @@ int main(int argc, char **argv) {
 
   kernel_lu(n,
             // Matrix A (in/out)
-            A, A, 0, n, n, n, 1);
+            *A, *A, 0, n, n, n, 1);
 
   polybench_timer_stop();
   ;

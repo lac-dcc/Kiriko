@@ -3256,18 +3256,18 @@ static void print_array(int n, double w[4000 + 0]) {
 }
 
 extern void
-kernel_gemver(long n, double alpha, double beta, double *aligned_A, double *A,
+kernel_gemver(long n, double alpha, double beta, double aligned_A[4000 + 0][4000 + 0], double A[4000 + 0][4000 + 0],
               long offset_A, long size_A_0, long size_A_1, long stride_A_0,
-              long stride_A_1, double *aligned_u1, double *u1, long offset_u1,
-              long size_u1_0, long stride_u1_0, double *aligned_v1, double *v1,
+              long stride_A_1, double aligned_u1[4000 + 0], double u1[4000 + 0], long offset_u1,
+              long size_u1_0, long stride_u1_0, double aligned_v1[4000 + 0], double v1[4000 + 0],
               long offset_v1, long size_v1_0, long stride_v1_0,
-              double *aligned_u2, double *u2, long offset_u2, long size_u2_0,
-              long stride_u2_0, double *aligned_v2, double *v2, long offset_v2,
-              long size_v2_0, long stride_v2_0, double *aligned_w, double *w,
-              long offset_w, long size_w_0, long stride_w_0, double *aligned_x,
-              double *x, long offset_x, long size_x_0, long stride_x_0,
-              double *aligned_y, double *y, long offset_y, long size_y_0,
-              long stride_y_0, double *aligned_z, double *z, long offset_z,
+              double aligned_u2[4000 + 0], double u2[4000 + 0], long offset_u2, long size_u2_0,
+              long stride_u2_0, double aligned_v2[4000 + 0], double v2[4000 + 0], long offset_v2,
+              long size_v2_0, long stride_v2_0, double aligned_w[4000 + 0], double w[4000 + 0],
+              long offset_w, long size_w_0, long stride_w_0, double aligned_x[4000 + 0],
+              double x[4000 + 0], long offset_x, long size_x_0, long stride_x_0,
+              double aligned_y[4000 + 0], double y[4000 + 0], long offset_y, long size_y_0,
+              long stride_y_0, double aligned_z[4000 + 0], double z[4000 + 0], long offset_z,
               long size_z_0, long stride_z_0);
 
 int main(int argc, char **argv) {
@@ -3310,9 +3310,9 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_gemver(n, alpha, beta, A, A, 0, n, n, n, 1, u1, u1, 0, n, 1, v1, v1, 0,
-                n, 1, u2, u2, 0, n, 1, v2, v2, 0, n, 1, w, w, 0, n, 1, x, x, 0,
-                n, 1, y, y, 0, n, 1, z, z, 0, n, 1);
+  kernel_gemver(n, alpha, beta, *A, *A, 0, n, n, n, 1, *u1, *u1, 0, n, 1, *v1, *v1, 0,
+                n, 1, *u2, *u2, 0, n, 1, *v2, *v2, 0, n, 1, *w, *w, 0, n, 1, *x, *x, 0,
+                n, 1, *y, *y, 0, n, 1, *z, *z, 0, n, 1);
 
   polybench_timer_stop();
   ;

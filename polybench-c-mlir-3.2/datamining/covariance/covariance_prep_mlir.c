@@ -3246,12 +3246,12 @@ static void print_array(int m, double symmat[1000 + 0][1000 + 0])
 }
 
 extern void
-kernel_covariance(long m, long n, double alpha, double *aligned_data,
-                  double *data, long offset_data, long size_data_0,
+kernel_covariance(long m, long n, double alpha, double aligned_data[1000 + 0][1000 + 0],
+                  double data[1000 + 0][1000 + 0], long offset_data, long size_data_0,
                   long size_data_1, long stride_data_0, long stride_data_1,
-                  double *aligned_cov, double *cov, long offset_cov,
+                  double aligned_cov[1000 + 0][1000 + 0], double cov[1000 + 0][1000 + 0], long offset_cov,
                   long size_cov_0, long size_cov_1, long stride_cov_0,
-                  long stride_cov_1, double *aligned_mean, double *mean,
+                  long stride_cov_1, double aligned_mean[1000 + 0], double mean[1000 + 0],
                   long offset_mean, long size_mean_0, long stride_mean_0);
 
 int main(int argc, char **argv) {
@@ -3277,8 +3277,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_covariance(m, n, float_n, data, data, 0, m, n, n, 1, symmat, symmat, 0,
-                    n, n, n, 1, mean, mean, 0, n, 1);
+  kernel_covariance(m, n, float_n, *data, *data, 0, m, n, n, 1, *symmat, *symmat, 0,
+                    n, n, n, 1, *mean, *mean, 0, n, 1);
 
   polybench_timer_stop();
   ;

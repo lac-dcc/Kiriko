@@ -3246,13 +3246,13 @@ static void print_array(int nx, double y[4000 + 0])
   fprintf(stderr, "\n");
 }
 
-extern void kernel_atax(long nx, long ny, double *aligned_A, double *A,
+extern void kernel_atax(long nx, long ny, double aligned_A[4000 + 0][4000 + 0], double A[4000 + 0][4000 + 0],
                         long offset_A, long size_A_0, long size_A_1,
-                        long stride_A_0, long stride_A_1, double *aligned_x,
-                        double *x, long offset_x, long size_x_0,
-                        long stride_x_0, double *aligned_y, double *y,
+                        long stride_A_0, long stride_A_1, double aligned_x[4000 + 0],
+                        double x[4000 + 0], long offset_x, long size_x_0,
+                        long stride_x_0, double aligned_y[4000 + 0], double y[4000 + 0],
                         long offset_y, long size_y_0, long stride_y_0,
-                        double *aligned_tmp, double *tmp, long offset_tmp,
+                        double aligned_tmp[4000 + 0], double tmp[4000 + 0], long offset_tmp,
                         long size_tmp_0, long stride_tmp_0);
 
 int main(int argc, char **argv) {
@@ -3277,10 +3277,10 @@ int main(int argc, char **argv) {
 
   polybench_timer_start();
 
-  kernel_atax(nx, ny, A, A, 0, nx, ny, ny, 1, // buffer A
-              x, x, 0, ny, 1,                 // buffer x
-              y, y, 0, nx, 1,                 // buffer y
-              tmp, tmp, 0, ny, 1              // buffer tmp
+  kernel_atax(nx, ny, *A, *A, 0, nx, ny, ny, 1, // buffer A
+              *x, *x, 0, ny, 1,                 // buffer x
+              *y, *y, 0, nx, 1,                 // buffer y
+              *tmp, *tmp, 0, ny, 1              // buffer tmp
   );
 
   polybench_timer_stop();
@@ -3288,7 +3288,7 @@ int main(int argc, char **argv) {
   polybench_timer_print();
   ;
 
-  print_array(nx, y);
+  print_array(nx, *y);
   free((void *)A);
   ;
   free((void *)x);

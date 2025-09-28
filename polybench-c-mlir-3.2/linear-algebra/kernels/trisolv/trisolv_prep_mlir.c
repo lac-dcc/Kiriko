@@ -3248,14 +3248,14 @@ extern void kernel_trisolv(
     long n,
 
     // Memref L: [n][n] (matriz triangular inferior)
-    double *aligned_L, double *L, long offset_L, long size_L_0, long size_L_1,
+    double aligned_L[4000 + 0][4000 + 0], double L[4000 + 0][4000 + 0], long offset_L, long size_L_0, long size_L_1,
     long stride_L_0, long stride_L_1,
 
     // Memref x: [n] (vetor de saída)
-    double *aligned_x, double *x, long offset_x, long size_x_0, long stride_x_0,
+    double aligned_x[4000 + 0], double x[4000 + 0], long offset_x, long size_x_0, long stride_x_0,
 
     // Memref b: [n] (vetor de entrada)
-    double *aligned_b, double *b, long offset_b, long size_b_0,
+    double aligned_b[4000 + 0], double b[4000 + 0], long offset_b, long size_b_0,
     long stride_b_0);
 
 int main(int argc, char **argv) {
@@ -3280,11 +3280,11 @@ int main(int argc, char **argv) {
 
   kernel_trisolv(n,
                  // Memref L
-                 A, A, 0, n, n, n, 1,
+                 *A, *A, 0, n, n, n, 1,
                  // Memref x
-                 x, x, 0, n, 1,
+                 *x, *x, 0, n, 1,
                  // Memref b
-                 c, c, 0, n, 1);
+                 *c, *c, 0, n, 1);
 
   polybench_timer_stop();
   ;

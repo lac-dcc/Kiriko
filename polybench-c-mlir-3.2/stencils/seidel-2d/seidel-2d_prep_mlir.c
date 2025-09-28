@@ -3242,7 +3242,7 @@ static void print_array(int n, double A[1000 + 0][1000 + 0])
   fprintf(stderr, "\n");
 }
 
-extern void kernel_seidel_2d(int n, int tsteps, double *aligned_A, double *A,
+extern void kernel_seidel_2d(int n, int tsteps, double aligned_A[1000 + 0][1000 + 0], double A[1000 + 0][1000 + 0],
                              long offset_A, long size_A_0, long size_A_1,
                              long stride_A_0, long stride_A_1);
 
@@ -3261,7 +3261,7 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_seidel_2d(tsteps, n, A, A, 0, 0, 0, 0, 1);
+  kernel_seidel_2d(tsteps, n, *A, *A, 0, 0, 0, 0, 1);
 
   polybench_timer_stop();
   ;

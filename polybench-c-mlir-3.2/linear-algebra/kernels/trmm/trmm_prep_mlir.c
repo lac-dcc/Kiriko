@@ -3252,11 +3252,11 @@ extern void kernel_trmm(
     double alpha,
 
     // Memref A: [m][m] (matriz triangular)
-    double *aligned_A, double *A, long offset_A, long size_A_0, long size_A_1,
+    double aligned_A[1024 + 0][1024 + 0], double A[1024 + 0][1024 + 0], long offset_A, long size_A_0, long size_A_1,
     long stride_A_0, long stride_A_1,
 
     // Memref B: [m][m] (matriz de saída)
-    double *aligned_B, double *B, long offset_B, long size_B_0, long size_B_1,
+    double aligned_B[1024 + 0][1024 + 0], double B[1024 + 0][1024 + 0], long offset_B, long size_B_0, long size_B_1,
     long stride_B_0, long stride_B_1);
 
 int main(int argc, char **argv) {
@@ -3280,9 +3280,9 @@ int main(int argc, char **argv) {
 
   kernel_trmm(ni, alpha,
               // Memref A
-              A, A, 0, ni, ni, ni, 1,
+              *A, *A, 0, ni, ni, ni, 1,
               // nieniref B
-              B, B, 0, ni, ni, ni, 1);
+              *B, *B, 0, ni, ni, ni, 1);
 
   polybench_timer_stop();
   ;

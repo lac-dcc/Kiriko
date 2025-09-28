@@ -3248,14 +3248,14 @@ static void print_array(int n, double x1[4000 + 0], double x2[4000 + 0])
   }
 }
 
-extern void kernel_mvt(long n, double *aligned_x1, double *x1, long offset_x1,
-                       long size_x1_0, long stride_x1_0, double *aligned_x2,
-                       double *x2, long offset_x2, long size_x2_0,
-                       long stride_x2_0, double *aligned_y1, double *y1,
+extern void kernel_mvt(long n, double aligned_x1[4000 + 0], double x1[4000 + 0], long offset_x1,
+                       long size_x1_0, long stride_x1_0, double aligned_x2[4000 + 0],
+                       double x2[4000 + 0], long offset_x2, long size_x2_0,
+                       long stride_x2_0, double aligned_y1[4000 + 0], double y1[4000 + 0],
                        long offset_y1, long size_y1_0, long stride_y1_0,
-                       double *aligned_y2, double *y2, long offset_y2,
-                       long size_y2_0, long stride_y2_0, double *aligned_A,
-                       double *A, long offset_A, long size_A_0, long size_A_1,
+                       double aligned_y2[4000 + 0], double y2[4000 + 0], long offset_y2,
+                       long size_y2_0, long stride_y2_0, double aligned_A[4000 + 0][4000 + 0],
+                       double A[4000 + 0][4000 + 0], long offset_A, long size_A_0, long size_A_1,
                        long stride_A_0, long stride_A_1
 
 );
@@ -3286,8 +3286,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
 
-  kernel_mvt(n, x1, x1, 0, n, 1, x2, x2, 0, n, 1, y_1, y_1, 0, n, 1, y_2, y_2,
-             0, n, 1, A, A, 0, n, n, n, 1);
+  kernel_mvt(n, *x1, *x1, 0, n, 1, *x2, *x2, 0, n, 1, *y_1, *y_1, 0, n, 1, *y_2, *y_2,
+             0, n, 1, *A, *A, 0, n, n, n, 1);
 
   polybench_timer_stop();
   ;

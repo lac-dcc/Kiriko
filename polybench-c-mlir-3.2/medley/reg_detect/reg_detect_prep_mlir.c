@@ -3251,22 +3251,22 @@ extern void kernel_reg_detect(
     int length,  // Length dimension for 3D arrays
 
     // 2D Arrays: [maxgrid][maxgrid]
-    double *aligned_sum_tang, double *sum_tang, long offset_sum_tang,
+    int aligned_sum_tang[6 + 0][6 + 0], int sum_tang[6 + 0][6 + 0], long offset_sum_tang,
     long size_sum_tang_0, long size_sum_tang_1, long stride_sum_tang_0,
     long stride_sum_tang_1,
 
-    double *aligned_mean, double *mean, long offset_mean, long size_mean_0,
+    int aligned_mean[6 + 0][6 + 0], int mean[6 + 0][6 + 0], long offset_mean, long size_mean_0,
     long size_mean_1, long stride_mean_0, long stride_mean_1,
 
-    double *aligned_path, double *path, long offset_path, long size_path_0,
+    int aligned_path[6 + 0][6 + 0], int path[6 + 0][6 + 0], long offset_path, long size_path_0,
     long size_path_1, long stride_path_0, long stride_path_1,
 
     // 3D Arrays: [maxgrid][maxgrid][length]
-    double *aligned_diff, double *diff, long offset_diff, long size_diff_0,
+    int aligned_diff[6 + 0][6 + 0][64 + 0], int diff[6 + 0][6 + 0][64 + 0], long offset_diff, long size_diff_0,
     long size_diff_1, long size_diff_2, long stride_diff_0, long stride_diff_1,
     long stride_diff_2,
 
-    double *aligned_sum_diff, double *sum_diff, long offset_sum_diff,
+    int aligned_sum_diff[6 + 0][6 + 0][64 + 0], int sum_diff[6 + 0][6 + 0][64 + 0], long offset_sum_diff,
     long size_sum_diff_0, long size_sum_diff_1, long size_sum_diff_2,
     long stride_sum_diff_0, long stride_sum_diff_1, long stride_sum_diff_2);
 
@@ -3304,12 +3304,12 @@ int main(int argc, char **argv) {
 
   kernel_reg_detect(niter, maxgrid, length,
                     // 2D Arrays
-                    sum_tang, sum_tang, 0, maxgrid, maxgrid, maxgrid, 1, mean,
-                    mean, 0, maxgrid, maxgrid, maxgrid, 1, path, path, 0,
+                    *sum_tang, *sum_tang, 0, maxgrid, maxgrid, maxgrid, 1, *mean,
+                    *mean, 0, maxgrid, maxgrid, maxgrid, 1, *path, *path, 0,
                     maxgrid, maxgrid, maxgrid, 1,
                     // 3D Arrays
-                    diff, diff, 0, maxgrid, maxgrid, length, maxgrid * length,
-                    length, 1, sum_diff, sum_diff, 0, maxgrid, maxgrid, length,
+                    *diff, *diff, 0, maxgrid, maxgrid, length, maxgrid * length,
+                    length, 1, *sum_diff, *sum_diff, 0, maxgrid, maxgrid, length,
                     maxgrid * length, length, 1);
 
   polybench_timer_stop();
