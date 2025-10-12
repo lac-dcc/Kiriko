@@ -3283,7 +3283,7 @@ int main(int argc, char **argv) {
   polybench_timer_print();
   ;
 
-  print_array(ni, *C);
+  //print_array(ni, *C);
 
   free((void *)C);
   ;

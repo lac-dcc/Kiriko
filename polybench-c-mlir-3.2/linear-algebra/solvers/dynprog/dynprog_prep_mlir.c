@@ -3284,7 +3284,7 @@ int main(int argc, char **argv) {
   polybench_timer_print();
   ;
 
-  print_array(out);
+  //print_array(out);
 
   free((void *)sum_c);
   ;
