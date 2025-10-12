@@ -1,8 +1,8 @@
 extern double sqrt(double);
 void kernel_correlation(int m, int n, double float_n,
-                        double **data,
-                        double **symmat,
-                        double *mean, double *stddev) {
+                        double data[1000 + 0][1000 + 0],
+                        double symmat[1000 + 0][1000 + 0],
+                        double mean[1000 + 0], double stddev[1000 + 0]) {
   int i, j, j1, j2;
 
   double eps = 0.1f;
