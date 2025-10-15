@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 from collect_metrics import collect_metrics
 import sys
-SAMPLE_SIZE = 50 # Number of times to run each benchmark
+SAMPLE_SIZE = 25 # Number of times to run each benchmark
 
 MLIR_OPT_PATH = "mlir-opt"  # Path to your mlir-opt binary
 LLC_PATH = "llc"  # Path to your llc binary
@@ -20,15 +20,15 @@ def compile_program(kernel_obj, version):
         kernel_obj: Path to the kernel object file.
         version: Version of the compiler to use (e.g., "mlir", "pluto", "polly").
     """
-    flags = ["-DPOLYBENCH_TIME -I ../polybench-c-mlir-3.2/utilities"]
+    flags = ["-DPOLYBENCH_TIME -DLARGE_DATASET -I ../polybench-c-mlir-3.2/utilities"]
     main_version = 'c'
     if version == "mlir":
         main_version = 'mlir'
-        flags += ["-lm", "-O3", "-fopenmp"]
+        flags += ["-lm", "-O3"]
     elif version == "pluto":
-        flags += ["-lm", "-O3", "-fopenmp"]
+        flags += ["-lm", "-O3"]
     elif version == "polly":
-        flags += ["-lm", "-O3", "-mllvm", "-polly", "-mllvm", "-polly-parallel", "-fopenmp"]
+        flags += ["-lm", "-O3", "-mllvm", "-polly"]
     elif version == "nopt":
         flags += ["-lm", "-O0"]
     elif version == "O1":
@@ -225,7 +225,6 @@ def compile_mlir_program(program_dir: Path, base_name: str):
         "-mem2reg",
         "-affine-loop-tile=tile-size=32",
         "-affine-loop-fusion",
-        "-affine-parallelize",
         "-affine-loop-unroll=unroll-factor=4",
         "-affine-loop-coalescing",
         "-affine-loop-invariant-code-motion",
@@ -238,7 +237,6 @@ def compile_mlir_program(program_dir: Path, base_name: str):
             "-cse",
             "-mem2reg",
             "-affine-loop-tile=tile-size=8",
-            "-affine-parallelize",
             "-affine-loop-unroll=unroll-factor=4",
             "-affine-loop-coalescing",
             "-affine-loop-invariant-code-motion",
@@ -247,8 +245,6 @@ def compile_mlir_program(program_dir: Path, base_name: str):
         ]
     lowering_pipeline = [
         "--lower-affine",
-        "--convert-scf-to-openmp",
-        "--convert-openmp-to-llvm",
         "--convert-scf-to-cf",
         "--convert-cf-to-llvm",
         "--convert-math-to-funcs",
@@ -304,7 +300,7 @@ def compile_pluto_program(program_path: Path, base_name: str):
 
     gen_pluto = [PLUTO_PATH, str(program_path / f"{base_name}.c"), "--silent", "-o", str(pluto_program)]
     move_cloog = ["mv", f"{base_name}_pluto.pluto.cloog", str(program_path)]
-    compile_command = [CLANG_PATH, "-O0", "-fopenmp", "-c", str(pluto_program), "-o", str(pluto_output)]
+    compile_command = [CLANG_PATH, "-O0", "-c", str(pluto_program), "-o", str(pluto_output)]
     run_command(gen_pluto)
     run_command(move_cloog)
     run_command(compile_command)
@@ -332,7 +328,7 @@ def compile_polly_program(program_path: Path, base_name: str):
         base_name (str): The base name for the Polly kernel file (without extension).
     """
     polly_output = program_path / f"{base_name}_polly.o"
-    compile_command = [CLANG_PATH, "-O3", "-mllvm", "-polly",  "-mllvm", "-polly-parallel", "-fopenmp", "-c", str(program_path / f"{base_name}.c"), "-o", str(polly_output)]
+    compile_command = [CLANG_PATH, "-O3", "-mllvm", "-polly", "-c", str(program_path / f"{base_name}.c"), "-o", str(polly_output)]
     run_command(compile_command)
     compile_program(polly_output, "polly")
     
@@ -434,8 +430,8 @@ def run_benchmarks(programs: list, output_file: Path):
         programs (list): List of program directories to compile.
         version (str): Version of the compiler used (e.g., "mlir", "pluto", "polly").
     """
-    # versions = ["nopt", "O1", "O2", "O3", "mlir", "pluto", "polly"]
-    versions = ["pluto", "polly"]
+    versions = ["nopt", "O1", "O2", "O3", "mlir", "pluto", "polly"]
+    # versions = ["nopt", "O3"]
     for i in range(SAMPLE_SIZE):
         for program_path in programs:
             for version in versions:
@@ -511,12 +507,6 @@ def main(output_file, clean_mode=False):
     compile_polly_programs(programs)
     
     run_benchmarks(programs, output_file)
-    run_benchmarks(programs, "O1", output_file)
-    run_benchmarks(programs, "O2", output_file)
-    run_benchmarks(programs, "O3", output_file)
-    run_benchmarks(programs, "mlir", output_file)
-    run_benchmarks(programs, "pluto", output_file)
-    run_benchmarks(programs, "polly", output_file)
     
 if __name__ == "__main__":
     # Set up argument parsing
