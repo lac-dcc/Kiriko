@@ -3317,7 +3317,7 @@ int main(int argc, char **argv) {
   polybench_timer_print();
   ;
 
-  print_array(maxgrid, *path);
+  //print_array(maxgrid, *path);
 
   free((void *)sum_tang);
   ;

@@ -3279,7 +3279,7 @@ int main(int argc, char **argv) {
   polybench_timer_print();
   ;
 
-  print_array(n, *A);
+  //print_array(n, *A);
 
   free((void *)A);
   ;

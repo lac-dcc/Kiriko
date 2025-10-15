@@ -3265,7 +3265,7 @@ int main(int argc, char **argv) {
   polybench_timer_print();
   ;
 
-  print_array(n, *path);
+  //print_array(n, *path);
 
   free((void *)path);
   ;

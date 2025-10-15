@@ -3319,7 +3319,7 @@ int main(int argc, char **argv) {
   polybench_timer_print();
   ;
 
-  print_array(n, *w);
+  //print_array(n, *w);
 
   free((void *)A);
   ;

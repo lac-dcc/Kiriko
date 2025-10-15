@@ -36,21 +36,23 @@ dTLB-prefetch-misses
 iTLB-loads
 iTLB-load-misses"""
 
-def run_perf_stat(program_path, csv_path):
+def collect_metrics(program_path, csv_path):
     # os.makedirs('result', exist_ok=True)
     already_exist = os.path.exists(csv_path)
     with open(csv_path, 'a', newline='') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=',')
         events_list = perf_events.strip().split('\n')
         if not already_exist:
-            csv_writer.writerow(["Program", "Runtime"] + events_list)
+            csv_writer.writerow(["Program", "Runtime(s)"] + events_list)
         
         program_name = os.path.basename(program_path)
         print(f'Running {program_name}...')
+        r_time = subprocess.run([program_path], capture_output=True, text=True, check=True)
+        exec_time = r_time.stdout.strip()
+        
         perf_command = ["perf", "stat", "-o", "temp.txt", "-x,"]
         perf_command += ["-e", ','.join(events_list), program_path]
-        r = subprocess.run(perf_command, capture_output=True, text=True, check=True)
-        exec_time = r.stdout.strip()
+        subprocess.run(perf_command, capture_output=True, text=True, check=True)
         
         with open('temp.txt', 'r') as perf_result:
             perf_output = perf_result.read().strip()
@@ -67,4 +69,4 @@ if __name__ == "__main__":
     parser.add_argument('program_path', help='Path to the program.')
     parser.add_argument('-o', '--csv_path', help='Path to the output CSV file.')
     args = parser.parse_args()
-    run_perf_stat(args.program_path, args.csv_path)
+    collect_metrics(args.program_path, args.csv_path)
