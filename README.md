@@ -47,7 +47,7 @@ To run the benchmarks, simply execute the `runBenchmarks.py` script located in t
 python3 Scripts/runBenchmarks.py
 ```
 
-This will compile all benchmarks with the pipelines described in the workflow section. Basically, the script follow the following algorithm to run the benchmarks:
+This will compile all benchmarks with the pipelines described in the workflow section. Basically, the script follows the following algorithm to run the benchmarks:
 ```bash
 
 for each optimization tool:
@@ -55,7 +55,7 @@ for each optimization tool:
         Compile the benchmark with the optimization tool
 for each iteration in SAMPLE_SIZE:
     for each benchmark in PolyBenchC-MLIR:
-        for each optimization tool in [Clang-O2, Clang-O3, Polly, MLIR, Pluto]:
+        for each optimization tool:
             Run the benchmark and collect execution time and other metrics
 
 ```
