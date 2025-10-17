@@ -40,6 +40,7 @@ First, if the tools are not in your system PATH, you can use environment variabl
 - MLIR_OPT_PATH: Path to the mlir-opt binary.
 - MLIR_TRANSLATE_PATH: Path to the mlir-translate binary.
 - SAMPLE_SIZE: Number of times to run each benchmark.
+  
 Also, you can define the sample size (number of executions of each benchmark) by changing the SAMPLE_SIZE setting it on your environment variables. By default, SAMPLE_SIZE is set to 1.
 
 To run the benchmarks, simply execute the `runBenchmarks.py` script located in the `Scripts` folder:
