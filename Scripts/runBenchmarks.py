@@ -4,13 +4,16 @@ import argparse
 from pathlib import Path
 from collect_metrics import collect_metrics
 import sys
-SAMPLE_SIZE = 25 # Number of times to run each benchmark
+from tools import get_default_tools
 
-MLIR_OPT_PATH = "mlir-opt"  # Path to your mlir-opt binary
-LLC_PATH = "llc"  # Path to your llc binary
-MLIR_TRANSLATE_PATH = "mlir-translate"  # Path to your mlir-translate binary
-PLUTO_PATH = "/home/lucasvictor/POC/Pluto/polycc"  # Path to your pluto binary
-CLANG_PATH = "clang"  # Path to your clang binary
+SAMPLE_SIZE = int(os.getenv("SAMPLE_SIZE", "1"))
+
+TOOLS = get_default_tools()
+MLIR_OPT_PATH = TOOLS["mlir_opt"]
+LLC_PATH = TOOLS["llc"]
+MLIR_TRANSLATE_PATH = TOOLS["mlir_translate"]
+PLUTO_PATH = TOOLS["polycc"]
+CLANG_PATH = TOOLS["clang"]
 
 def compile_program(kernel_obj, version):
     """
@@ -451,36 +454,36 @@ def main(output_file, clean_mode=False):
 
     # List of programs to compile
     programs = [
-        "../polybench-c-mlir-3.2/datamining/correlation/",
-        "../polybench-c-mlir-3.2/datamining/covariance/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/2mm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/3mm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/atax/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/bicg/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/cholesky/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/doitgen/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/gemm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/trmm/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/durbin/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/dynprog/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/gramschmidt/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/lu/",
-        "../polybench-c-mlir-3.2/linear-algebra/solvers/ludcmp/",
-        "../polybench-c-mlir-3.2/medley/floyd-warshall/",
-        "../polybench-c-mlir-3.2/medley/reg_detect/",
+        # "../polybench-c-mlir-3.2/datamining/correlation/",
+        # "../polybench-c-mlir-3.2/datamining/covariance/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/2mm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/3mm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/atax/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/bicg/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/cholesky/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/doitgen/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gemm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/trmm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/durbin/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/dynprog/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/gramschmidt/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/lu/",
+        # "../polybench-c-mlir-3.2/linear-algebra/solvers/ludcmp/",
+        # "../polybench-c-mlir-3.2/medley/floyd-warshall/",
+        # "../polybench-c-mlir-3.2/medley/reg_detect/",
         "../polybench-c-mlir-3.2/stencils/adi/",
-        "../polybench-c-mlir-3.2/stencils/fdtd-2d/",
-        "../polybench-c-mlir-3.2/stencils/fdtd-apml/",
-        "../polybench-c-mlir-3.2/stencils/jacobi-1d-imper/",
-        "../polybench-c-mlir-3.2/stencils/jacobi-2d-imper/",
-        "../polybench-c-mlir-3.2/stencils/seidel-2d/",
+        # "../polybench-c-mlir-3.2/stencils/fdtd-2d/",
+        # "../polybench-c-mlir-3.2/stencils/fdtd-apml/",
+        # "../polybench-c-mlir-3.2/stencils/jacobi-1d-imper/",
+        # "../polybench-c-mlir-3.2/stencils/jacobi-2d-imper/",
+        # "../polybench-c-mlir-3.2/stencils/seidel-2d/",
     ]
 
     if clean_mode:
