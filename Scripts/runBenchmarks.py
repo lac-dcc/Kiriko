@@ -4,426 +4,33 @@ import argparse
 from pathlib import Path
 from collect_metrics import collect_metrics
 import sys
+from compile_clang import compile_programs_clang
+from compile_pluto import compile_programs_pluto
+from compile_mlir import compile_programs_mlir
+
 from tools import get_default_tools
 
 SAMPLE_SIZE = int(os.getenv("SAMPLE_SIZE", "1"))
 
-TOOLS = get_default_tools()
-MLIR_OPT_PATH = TOOLS["mlir_opt"]
-LLC_PATH = TOOLS["llc"]
-MLIR_TRANSLATE_PATH = TOOLS["mlir_translate"]
-PLUTO_PATH = TOOLS["polycc"]
-CLANG_PATH = TOOLS["clang"]
-
-def compile_program(kernel_obj, version):
+def clean_generated_files(dir_name: Path, base_name: str):
     """
-    Compiles a given kernel object file with the specified version.
-
-    Args:
-        kernel_obj: Path to the kernel object file.
-        version: Version of the compiler to use (e.g., "mlir", "pluto", "polly").
-    """
-    flags = ["-DPOLYBENCH_TIME -DLARGE_DATASET -I ../polybench-c-mlir-3.2/utilities"]
-    main_version = 'c'
-    if version == "mlir":
-        main_version = 'mlir'
-        flags += ["-lm", "-O3"]
-    elif version == "pluto":
-        flags += ["-lm", "-O3"]
-    elif version == "polly":
-        flags += ["-lm", "-O3", "-mllvm", "-polly"]
-    elif version == "nopt":
-        flags += ["-lm", "-O0"]
-    elif version == "O1":
-        flags += ["-lm", "-O1"]
-    elif version == "O2":
-        flags += ["-lm", "-O2"]
-    elif version == "O3":
-        flags += ["-lm", "-O3"]
-    else:
-        raise ValueError(f"Unknown version: {version}")
-    flags += ["../polybench-c-mlir-3.2/utilities/polybench.c"]
-    
-    parent = kernel_obj.parent
-    bench_name = parent.name
-    preprocessed_main_name =  bench_name + f'_prep_{main_version}.c'
-    preprocessed_main = parent / preprocessed_main_name
-    if not Path(preprocessed_main).exists():
-        print(f"Error: File {preprocessed_main} does not exist.")
-        return
-    output = parent / (bench_name + f'_main_{version}')
-    compile_command = [CLANG_PATH] + flags + [str(preprocessed_main), str(kernel_obj), "-o", str(output)]
-    run_command(compile_command)
-    if not Path(output).exists():
-        print(f"Error: Failed to generate {output}.")
-        return
-    
-def run_command(command):
-    """
-    Executes a shell command.
-
-    Args:
-        command: A list of strings representing the command and its arguments.
-    """
-    try:
-        subprocess.run(command, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error executing command: {e}", file=sys.stderr)
-
-def compile_mlir_to_llvm_mlir(input_mlir: Path, output_mlir: Path, opt_pipeline, lowering_pipeline):
-    """
-    Compiles an input MLIR file to an MLIR file with LLVM dialect, applying the optimization pipeline.
-
-    Args:
-        input_mlir: Path to the input MLIR file.
-        output_mlir: Path to the output MLIR file (with LLVM dialect).
-        opt_pipeline: List of MLIR optimization pipeline stages.
-        lowering_pipeline: List of MLIR lowering passes to apply.
-    """
-    opt_file_path = input_mlir.parent / f"opt_{input_mlir.name}"
-    mlir_opt_command = [MLIR_OPT_PATH, str(input_mlir)] + opt_pipeline + ["-o", str(opt_file_path)]
-    mlir_low_command = [MLIR_OPT_PATH, str(opt_file_path)] + lowering_pipeline + ["-o", str(output_mlir)]
-    run_command(mlir_opt_command)
-    run_command(mlir_low_command)
-
-def translate_mlir_to_llvmir(input_mlir: Path, output_ll: Path):
-    """
-    Translates an MLIR file (with LLVM dialect) to LLVM IR (.ll).
-
-    Args:
-        input_mlir: Path to the input MLIR file (with LLVM dialect).
-        output_ll: Path to the output LLVM IR file (.ll).
-    """
-    mlir_translate_command = [
-        MLIR_TRANSLATE_PATH,
-        "--mlir-to-llvmir",
-        str(input_mlir),
-        "-o", str(output_ll)
-    ]
-    run_command(mlir_translate_command)
-
-def compile_llvmir_to_object(input_ll: Path, output_obj: Path):
-    """
-    Compiles an LLVM IR file (.ll) to an object file (.o).
-
-    Args:
-        input_ll: Path to the input LLVM IR file (.ll).
-        output_obj: Path to the output object file (.o).
-    """
-    llc_command = [LLC_PATH, "-O3", "-filetype=obj", "-relocation-model=pic", str(input_ll), "-o", str(output_obj)]
-    run_command(llc_command)
-
-def clean_mlir_generated_files(dir_name: Path, base_name: str):
-    """
-    Removes generated files (.ll, .o, _mlir.mlir).
+    Removes all generated files.
 
     Args:
         dir_name: Directory where the generated files are located.
         base_name: Base name of the program (without extension).
     """
-    llvm_file = dir_name / f"{base_name}_mlir.ll"
-    obj_file = dir_name / f"{base_name}_mlir.o"
-    output_mlir = dir_name / f"{base_name}_mlir.mlir"
-    opt_mlir = dir_name / f"opt_{base_name}.mlir"
-    output = dir_name / (dir_name.name + f'_main_mlir')
-    for file_to_remove in [llvm_file, obj_file, output_mlir, opt_mlir, output]:
-        if file_to_remove.exists():
-            file_to_remove.unlink()
-
-def clean_pluto_generated_files(dir_name: Path, base_name: str):
-    """
-    Removes files generated by Pluto (.c, .o, .pluto.cloog).
-
-    Args:
-        dir_name: Directory where the generated files are located.
-        base_name: Base name of the program (without extension).
-    """
-    pluto_program = dir_name / f"{base_name}_pluto.c"
-    pluto_output = dir_name / f"{base_name}_pluto.o"
-    cloog_file = dir_name / f"{base_name}_pluto.pluto.cloog"
-    output = dir_name / (dir_name.name + f'_main_pluto')
-    for file_to_remove in [pluto_program, pluto_output, cloog_file, output]:
-        if file_to_remove.exists():
-            file_to_remove.unlink()
-
-def clean_polly_generated_files(dir_name: Path, base_name: str):
-    """
-    Removes files generated by Polly (.o).
-
-    Args:
-        dir_name: Directory where the generated files are located.
-        base_name: Base name of the program (without extension).
-    """
-    polly_output = dir_name / f"{base_name}_polly.o"
-    output = dir_name / (dir_name.name + f'_main_polly')
-    for file_to_remove in [polly_output, output]:
-        if file_to_remove.exists():
-            file_to_remove.unlink()
-            
-def clean_nopt_generated_files(dir_name: Path, base_name: str):
-    """
-    Removes files generated by no optimized code (.o).
-
-    Args:
-        dir_name: Directory where the generated files are located.
-        base_name: Base name of the program (without extension).
-    """
-    nopt_output = dir_name / f"{base_name}_nopt.o"
-    output = dir_name / (dir_name.name + f'_main_nopt')
-    for file_to_remove in [nopt_output, output]:
-        if file_to_remove.exists():
-            file_to_remove.unlink()
-            
-def clean_O1_generated_files(dir_name: Path, base_name: str):
-    """
-    Removes files generated by O1 optimized code (.o).
-
-    Args:
-        dir_name: Directory where the generated files are located.
-        base_name: Base name of the program (without extension).
-    """
-    O1_output = dir_name / f"{base_name}_O1.o"
-    output = dir_name / (dir_name.name + f'_main_O1')
-    for file_to_remove in [O1_output, output]:
-        if file_to_remove.exists():
-            file_to_remove.unlink()
-def clean_O2_generated_files(dir_name: Path, base_name: str):
-    """
-    Removes files generated by O2 optimized code (.o).
-
-    Args:
-        dir_name: Directory where the generated files are located.
-        base_name: Base name of the program (without extension).
-    """
-    O2_output = dir_name / f"{base_name}_O2.o"
-    output = dir_name / (dir_name.name + f'_main_O2')
-    for file_to_remove in [O2_output, output]:
-        if file_to_remove.exists():
-            file_to_remove.unlink()
-def clean_O3_generated_files(dir_name: Path, base_name: str):
-    """
-    Removes files generated by O3 optimized code (.o).
-
-    Args:
-        dir_name: Directory where the generated files are located.
-        base_name: Base name of the program (without extension).
-    """
-    O3_output = dir_name / f"{base_name}_O3.o"
-    output = dir_name / (dir_name.name + f'_main_O3')
-    for file_to_remove in [O3_output, output]:
-        if file_to_remove.exists():
-            file_to_remove.unlink()
-            
-def compile_mlir_program(program_dir: Path, base_name: str):
-    """
-    Compiles a given MLIR program located in `program_dir` with the specified base name and optimization pipeline.
-
-    Args:
-        program_dir (Path): The directory containing the MLIR program files.
-        base_name (str): The base name for the MLIR kernel file (without extension).
-    """
-    opt_pipeline = [
-        "-canonicalize",
-        "-cse",
-        "-mem2reg",
-        "-affine-loop-tile=tile-size=32",
-        "-affine-loop-fusion",
-        "-affine-loop-unroll=unroll-factor=4",
-        "-affine-loop-coalescing",
-        "-affine-loop-invariant-code-motion",
-        "-affine-scalrep",
-        "-affine-super-vectorize"
-    ]
-    if program_dir.name == "reg_detect":
-        opt_pipeline = [
-            "-canonicalize",
-            "-cse",
-            "-mem2reg",
-            "-affine-loop-tile=tile-size=8",
-            "-affine-loop-unroll=unroll-factor=4",
-            "-affine-loop-coalescing",
-            "-affine-loop-invariant-code-motion",
-            "-affine-scalrep",
-            "-affine-super-vectorize"
-        ]
-    lowering_pipeline = [
-        "--lower-affine",
-        "--convert-scf-to-cf",
-        "--convert-cf-to-llvm",
-        "--convert-math-to-funcs",
-        "--convert-math-to-llvm",
-        "--convert-arith-to-llvm",
-        "--convert-func-to-llvm",
-        "--finalize-memref-to-llvm",
-        "-reconcile-unrealized-casts"
-    ]
+    mlir_dir = dir_name / "MLIR"
+    c_dir = dir_name / "C"
+    keep_mlir = [f"{base_name}_kernel.mlir", f"{base_name}_prep_mlir.c"]
+    keep_c = [f"{base_name}_kernel.c", f"{base_name}_prep_c.c"]
     
-    mlir_kernel_file = program_dir / f"{base_name}.mlir"
-    output_mlir = program_dir / f"{base_name}_mlir.mlir"
-    llvm_file = program_dir / f"{base_name}_mlir.ll"
-    obj_file = program_dir / f"{base_name}_mlir.o"
-
-    compile_mlir_to_llvm_mlir(mlir_kernel_file, output_mlir, opt_pipeline, lowering_pipeline)
-    if not output_mlir.exists():
-        print(f"Error: Output MLIR file {output_mlir} was not created.")
-        return
-    translate_mlir_to_llvmir(output_mlir, llvm_file)
-    if not llvm_file.exists():
-        print(f"Error: LLVM IR file {llvm_file} was not created.")
-        return
-    compile_llvmir_to_object(llvm_file, obj_file)
-    if not obj_file.exists():
-        print(f"Error: Object file {obj_file} was not created.")
-        return
-    compile_program(obj_file, "mlir")
-    
-def compile_mlir_programs(programs):
-    """
-    Compiles multiple MLIR programs using the specified optimization pipeline.
-
-    Args:
-        programs (list[str]): List of program directories to compile.
-    """
-    print("Compiling MLIR programs...")
-    for program_path_str in programs:
-        program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_mlir_program(program_path, base_name)
-
-def compile_pluto_program(program_path: Path, base_name: str):
-    """
-    Compiles a Pluto program located in `program_path` with the specified base name.
-
-    Args:
-        program_path (Path): The directory containing the Pluto program files.
-        base_name (str): The base name for the Pluto kernel file (without extension).
-    """
-    pluto_program = program_path / f"{base_name}_pluto.c"
-    pluto_output = program_path / f"{base_name}_pluto.o"
-
-    gen_pluto = [PLUTO_PATH, str(program_path / f"{base_name}.c"), "--silent", "-o", str(pluto_program)]
-    move_cloog = ["mv", f"{base_name}_pluto.pluto.cloog", str(program_path)]
-    compile_command = [CLANG_PATH, "-O0", "-c", str(pluto_program), "-o", str(pluto_output)]
-    run_command(gen_pluto)
-    run_command(move_cloog)
-    run_command(compile_command)
-    compile_program(pluto_output, "pluto")
-    
-def compile_pluto_programs(programs):
-    """
-    Compiles multiple Pluto programs.
-
-    Args:
-        programs (list[str]): List of program directories to compile.
-    """
-    print("Compiling Pluto programs...")
-    for program_path_str in programs:
-        program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_pluto_program(program_path, base_name)
-
-def compile_polly_program(program_path: Path, base_name: str):
-    """
-    Compiles a Polly program located in `program_path` with the specified base name.
-    
-    Args:
-        program_path (Path): The directory containing the Polly program files.
-        base_name (str): The base name for the Polly kernel file (without extension).
-    """
-    polly_output = program_path / f"{base_name}_polly.o"
-    compile_command = [CLANG_PATH, "-O3", "-mllvm", "-polly", "-c", str(program_path / f"{base_name}.c"), "-o", str(polly_output)]
-    run_command(compile_command)
-    compile_program(polly_output, "polly")
-    
-def compile_polly_programs(programs):
-    """
-    Compiles multiple Polly programs.
-
-    Args:
-        programs (list[str]): List of program directories to compile.
-    """
-    print("Compiling Polly programs...")
-    for program_path_str in programs:
-        program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_polly_program(program_path, base_name)
-
-def compile_non_optimized_program(program_path: Path, base_name: str):
-    nopt_output = program_path / f"{base_name}_nopt.o"
-    compile_command = [CLANG_PATH, "-O0", "-c", str(program_path / f"{base_name}.c"), "-o", str(nopt_output)]
-    run_command(compile_command)
-    compile_program(nopt_output, "nopt")
-    
-def compile_non_optimized_programs(programs):
-    """
-    Compiles multiple non-optimized programs.
-
-    Args:
-        programs (list[str]): List of program directories to compile.
-    """
-    print("Compiling non-optimized programs...")
-    for program_path_str in programs:
-        program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_non_optimized_program(program_path, base_name)
-
-
-def compile_O1_optimized_program(program_path: Path, base_name: str):
-    O1_output = program_path / f"{base_name}_O1.o"
-    compile_command = [CLANG_PATH, "-O1", "-c", str(program_path / f"{base_name}.c"), "-o", str(O1_output)]
-    run_command(compile_command)
-    compile_program(O1_output, "O1")
-
-def compile_O1_optimized_programs(programs):
-    """
-    Compiles multiple O1-optimized programs.
-
-    Args:
-        programs (list[str]): List of program directories to compile.
-    """
-    print("Compiling O1-optimized programs...")
-    for program_path_str in programs:
-        program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_O1_optimized_program(program_path, base_name)
-
-def compile_O2_optimized_program(program_path: Path, base_name: str):
-    O2_output = program_path / f"{base_name}_O2.o"
-    compile_command = [CLANG_PATH, "-O2", "-c", str(program_path / f"{base_name}.c"), "-o", str(O2_output)]
-    run_command(compile_command)
-    compile_program(O2_output, "O2")
-
-def compile_O2_optimized_programs(programs):
-    """
-    Compiles multiple O2-optimized programs.
-
-    Args:
-        programs (list[str]): List of program directories to compile.
-    """
-    print("Compiling O2-optimized programs...")
-    for program_path_str in programs:
-        program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_O2_optimized_program(program_path, base_name)
-
-def compile_O3_optimized_program(program_path: Path, base_name: str):
-    O3_output = program_path / f"{base_name}_O3.o"
-    compile_command = [CLANG_PATH, "-O3", "-c", str(program_path / f"{base_name}.c"), "-o", str(O3_output)]
-    run_command(compile_command)
-    compile_program(O3_output, "O3")
-
-def compile_O3_optimized_programs(programs):
-    """
-    Compiles multiple O3-optimized programs.
-
-    Args:
-        programs (list[str]): List of program directories to compile.
-    """
-    print("Compiling O3-optimized programs...")
-    for program_path_str in programs:
-        program_path = Path(program_path_str)
-        base_name = program_path.stem + "_kernel"
-        compile_O3_optimized_program(program_path, base_name)
+    for file in mlir_dir.iterdir():
+        if file.name not in keep_mlir:
+            file.unlink()
+    for file in c_dir.iterdir():
+        if file.name not in keep_c:
+            file.unlink()
 
 def run_benchmarks(programs: list, output_file: Path):
     """
@@ -433,13 +40,13 @@ def run_benchmarks(programs: list, output_file: Path):
         programs (list): List of program directories to compile.
         version (str): Version of the compiler used (e.g., "mlir", "pluto", "polly").
     """
-    versions = ["nopt", "O1", "O2", "O3", "mlir", "pluto", "polly"]
-    # versions = ["nopt", "O3"]
+    versions = ["O0", "O1", "O2", "O3", "mlir", "pluto", "O3_mllvm_polly"]
     for i in range(SAMPLE_SIZE):
         for program_path in programs:
             for version in versions:
                 program_name = Path(program_path).name+ f'_main_{version}'
-                prog_bin = Path(program_path) /  program_name
+                bin_dir = Path(f"{program_path}/MLIR") if version == "mlir" else Path(f"{program_path}/C")
+                prog_bin = bin_dir /  program_name
                 if not prog_bin.exists():
                     print(f"Error: Output file {prog_bin} does not exist.")
                     return
@@ -454,60 +61,55 @@ def main(output_file, clean_mode=False):
 
     # List of programs to compile
     programs = [
-        # "../polybench-c-mlir-3.2/datamining/correlation/",
-        # "../polybench-c-mlir-3.2/datamining/covariance/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/2mm/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/3mm/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/atax/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/bicg/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/cholesky/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/doitgen/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gemm/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/",
-        # "../polybench-c-mlir-3.2/linear-algebra/kernels/trmm/",
-        # "../polybench-c-mlir-3.2/linear-algebra/solvers/durbin/",
-        # "../polybench-c-mlir-3.2/linear-algebra/solvers/dynprog/",
-        # "../polybench-c-mlir-3.2/linear-algebra/solvers/gramschmidt/",
-        # "../polybench-c-mlir-3.2/linear-algebra/solvers/lu/",
-        # "../polybench-c-mlir-3.2/linear-algebra/solvers/ludcmp/",
-        # "../polybench-c-mlir-3.2/medley/floyd-warshall/",
-        # "../polybench-c-mlir-3.2/medley/reg_detect/",
+        "../polybench-c-mlir-3.2/datamining/correlation/",
+        "../polybench-c-mlir-3.2/datamining/covariance/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/2mm/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/3mm/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/atax/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/bicg/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/cholesky/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/doitgen/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/gemm/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/",
+        "../polybench-c-mlir-3.2/linear-algebra/kernels/trmm/",
+        "../polybench-c-mlir-3.2/linear-algebra/solvers/durbin/",
+        "../polybench-c-mlir-3.2/linear-algebra/solvers/dynprog/",
+        "../polybench-c-mlir-3.2/linear-algebra/solvers/gramschmidt/",
+        "../polybench-c-mlir-3.2/linear-algebra/solvers/lu/",
+        "../polybench-c-mlir-3.2/linear-algebra/solvers/ludcmp/",
+        "../polybench-c-mlir-3.2/medley/floyd-warshall/",
+        "../polybench-c-mlir-3.2/medley/reg_detect/",
         "../polybench-c-mlir-3.2/stencils/adi/",
-        # "../polybench-c-mlir-3.2/stencils/fdtd-2d/",
-        # "../polybench-c-mlir-3.2/stencils/fdtd-apml/",
-        # "../polybench-c-mlir-3.2/stencils/jacobi-1d-imper/",
-        # "../polybench-c-mlir-3.2/stencils/jacobi-2d-imper/",
-        # "../polybench-c-mlir-3.2/stencils/seidel-2d/",
+        "../polybench-c-mlir-3.2/stencils/fdtd-2d/",
+        "../polybench-c-mlir-3.2/stencils/fdtd-apml/",
+        "../polybench-c-mlir-3.2/stencils/jacobi-1d-imper/",
+        "../polybench-c-mlir-3.2/stencils/jacobi-2d-imper/",
+        "../polybench-c-mlir-3.2/stencils/seidel-2d/",
     ]
 
     if clean_mode:
         print("Cleaning up generated files...")
         for program_path_str in programs:
             program_path = Path(program_path_str)
-            base_name = program_path.stem + "_kernel"
-            clean_mlir_generated_files(program_path, base_name)
-            clean_pluto_generated_files(program_path, base_name)
-            clean_polly_generated_files(program_path, base_name)
-            clean_nopt_generated_files(program_path, base_name)
-            clean_O1_generated_files(program_path, base_name)
-            clean_O2_generated_files(program_path, base_name)
-            clean_O3_generated_files(program_path, base_name)
+            base_name = program_path.stem
+            clean_generated_files(program_path, base_name)
         print("Cleanup completed.")
         return
 
-    compile_non_optimized_programs(programs)
-    compile_O1_optimized_programs(programs)
-    compile_O2_optimized_programs(programs)
-    compile_O3_optimized_programs(programs)
-    compile_mlir_programs(programs)
-    compile_pluto_programs(programs)
-    compile_polly_programs(programs)
+
+    compile_programs_clang(programs, ["-O0"])
+    compile_programs_clang(programs, ["-O1"])
+    compile_programs_clang(programs, ["-O2"])
+    compile_programs_clang(programs, ["-O3"])
+    compile_programs_clang(programs, ["-O3", "-mllvm", "-polly"])
+    compile_programs_pluto(programs)
+    compile_programs_mlir(programs)
     
     run_benchmarks(programs, output_file)
     
