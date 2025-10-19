@@ -61,19 +61,54 @@ for each iteration in SAMPLE_SIZE:
 
 ```
 ## Reports
-The reports produced by Kiriko consists of set of features, which includes the execution time in seconds and a collection of dynamic metrics collected via Linux Perf. A report will be generated for each optimization tool in each iteration. For istance, see a simplified report below:
-| Program                | Runtime(s) | cpu-cycles   | instructions  | cache-references | cache-misses | branch-instructions |
-|------------------------|-------------|---------------|----------------|------------------|---------------|----------------------|
-| correlation_main_pluto | 1.278681    | 4,497,212,873 | 13,139,238,326 | 6,101,380        | 828,954       | 162,230,011          |
-| covariance_main_pluto  | 1.549036    | 4,436,077,379 | 12,757,970,351 | 6,644,667        | 939,567       | 156,992,355          |
-| 2mm_main_pluto         | 8.467904    | 29,707,093,247| 61,769,761,638 | 24,905,749       | 1,198,999     | 108,267,786          |
-| 3mm_main_pluto         | 12.702359   | 44,694,208,756| 90,844,029,786 | 30,815,812       | 1,417,353     | 137,563,700          |
-| atax_main_pluto        | 0.170395    | 918,449,051   | 1,253,846,204  | 5,533,454        | 5,037,068     | 41,868,709           |
-| bicg_main_pluto        | 0.155605    | 889,542,611   | 1,149,779,010  | 7,553,389        | 6,689,063     | 44,877,607           |
-| cholesky_main_pluto    | 0.514379    | 1,769,998,202 | 5,402,176,141  | 2,097,682        | 938,806       | 352,451,464          |
-| doitgen_main_pluto     | 2.111096    | 7,602,320,129 | 13,448,541,237 | 9,608,746        | 1,084,033     | 18,454,140           |
+Kiriko produces detailed reports containing multiple features for each benchmark, including execution time (in seconds) and a set of dynamic metrics collected via Linux Perf. A separate report is generated for each optimization tool during each iteration.  
 
-Also, if you are working with multiple iterations, you can use the script ```process_results.py``` to produce a unified report that calculates the mean, median, std error, max and min of each metric during the iterations.
+For example, a simplified report looks like this:
+
+| Program                | Runtime (s) | CPU Cycles     | Instructions     | Cache References | Cache Misses | Branch Instructions |
+|------------------------|-------------|----------------|-----------------|-----------------|--------------|-------------------|
+| correlation_main_pluto | 1.278681    | 4,497,212,873  | 13,139,238,326  | 6,101,380       | 828,954      | 162,230,011       |
+| covariance_main_pluto  | 1.549036    | 4,436,077,379  | 12,757,970,351  | 6,644,667       | 939,567      | 156,992,355       |
+| 2mm_main_pluto         | 8.467904    | 29,707,093,247 | 61,769,761,638  | 24,905,749      | 1,198,999    | 108,267,786       |
+| 3mm_main_pluto         | 12.702359   | 44,694,208,756 | 90,844,029,786  | 30,815,812      | 1,417,353    | 137,563,700       |
+| atax_main_pluto        | 0.170395    | 918,449,051    | 1,253,846,204   | 5,533,454       | 5,037,068    | 41,868,709        |
+| bicg_main_pluto        | 0.155605    | 889,542,611    | 1,149,779,010   | 7,553,389       | 6,689,063    | 44,877,607        |
+| cholesky_main_pluto    | 0.514379    | 1,769,998,202  | 5,402,176,141   | 2,097,682       | 938,806      | 352,451,464       |
+| doitgen_main_pluto     | 2.111096    | 7,602,320,129  | 13,448,541,237  | 9,608,746       | 1,084,033    | 18,454,140        |
+
+For experiments with multiple iterations, the script `process_results.py` can generate a unified report calculating the **mean**, **median**, **standard error**, **max**, and **min** for each metric across iterations.  
+
+---
+
+## Experiments and Results
+As a proof of concept, we conducted an initial experiment testing all optimization technologies available in Kiriko: Clang (O0–O3), LLVM Polly, Pluto, and MLIR Affine.  
+The experiment used **SAMPLE_SIZE = 50**, meaning each benchmark was executed 50 times per tool. The system configuration was:
+
+| **Feature**           | **Value** |
+|------------------------|-----------|
+| CPU Model             | Intel(R) Xeon(R) CPU E5-2680 v2 @ 2.80GHz |
+| Total CPUs            | 40 |
+| Sockets               | 2 |
+| Cores per Socket      | 10 |
+| Threads per Core      | 2 |
+| Total Cores/Threads   | 20 cores / 40 threads |
+| L3 Cache              | 50 MiB |
+| OS                    | Ubuntu 20.04.6 LTS | 
+| RAM Size              | 32 GB (8 × 4 GB) |
+| RAM Type              | DDR3 @ 1333 MT/s |
+
+We measured the runtime of each benchmark across all compiler tools. Each program’s **average runtime** was used to compute speedups relative to the baseline (O0). A speedup greater than 1 indicates faster execution.  
+
+> **Note:** The benchmark `gemm` was excluded from the speedup chart for clarity, as its results were extreme: `O3`: 1.009, `Pluto`: 1.406, `Polly`: 22.634, `MLIR`: 0.857.  
+
+![Speedups](assets/speedups.png)  
+
+We also calculated the **geometric mean** across all programs to summarize overall tool performance.  
+
+<p align="center">
+  <img src="assets/GM.png" alt="Geometric Mean" width="800"/>
+</p>
+
+This approach highlights both the **best-performing tool for each program** and the **general efficiency** across the benchmark suite.
 
 
-# Experiments and Results
