@@ -3285,8 +3285,8 @@ int main(int argc, char **argv) {
   polybench_timer_start();
   ;
   
-//   kernel_symm(ni, nj, alpha, beta, *C, *C, 0, ni, nj, nj, 1, *B, *B, 0, ni, nj, nj,
-//     1, *A, *A, 0, ni, ni, ni, 1);
+  kernel_symm(ni, nj, alpha, beta, *C, *C, 0, ni, nj, nj, 1, *B, *B, 0, ni, nj, nj,
+    1, *A, *A, 0, ni, ni, ni, 1);
 
   polybench_timer_stop();
   ;

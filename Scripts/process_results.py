@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import re
 import argparse
 
@@ -17,27 +16,6 @@ def simplify_benchmark_name(name: str) -> str:
         return match.group(1)
     else:
         return name
-    
-
-# def gen_hists(dfs: pd.DataFrame, feature: str, output_folder: str = "plots"):
-#     """
-#     Generates histograms for a given feature across different benchmarks.
-    
-#     Parameters:
-#         dfs (pd.DataFrame): DataFrame containing the data.
-#         feature (str): The feature/column name to plot.
-#         output_folder (str): Folder to save the plots.
-#     """
-#     os.makedirs(output_folder, exist_ok=True)
-#     for i, df in enumerate(dfs):
-#         df["experimento"] = i
-
-#     combined_df = pd.concat(dfs, ignore_index=True)
-#     g = sns.FacetGrid(combined_df, col="Program", col_wrap=3, sharex=False, sharey=False)
-#     g.map_dataframe(sns.histplot, x="Runtime", bins=5)
-#     g.set_axis_labels("Runtime", "Frequência")
-#     plot_path = os.path.join("plots", f"hist_by_benchmark.png")
-#     plt.savefig(plot_path)
     
 def aggregate_experiments(folder_path: str, output_file: str = "aggregated_results.csv"):
     """
@@ -82,29 +60,6 @@ def aggregate_experiments(folder_path: str, output_file: str = "aggregated_resul
     # Save to CSV
     result.to_csv(output_file)
     print(f"Aggregated results saved to {output_file}")
-    
-    # # if make_plots:
-    # os.makedirs("plots", exist_ok=True)
-    # for feature in features:
-    #     benchmarks = combined_df['benchmark_simple'].unique()
-    #     n_benchmarks = len(benchmarks)
-        
-    #     fig, axes = plt.subplots(n_benchmarks, 1, figsize=(8, 4 * n_benchmarks), sharex=True)
-    #     if n_benchmarks == 1:
-    #         axes = [axes]  # handle single case
-        
-    #     for ax, benchmark in zip(axes, benchmarks):
-    #         subset = combined_df[combined_df['benchmark_simple'] == benchmark]
-    #         sns.boxplot(y=subset[feature], ax=ax)
-    #         ax.set_title(f"{benchmark} - {feature}")
-    #         ax.set_ylabel(feature)
-        
-    #     plt.tight_layout()
-    #     plot_path = os.path.join("plots", f"boxplot_{feature}_by_benchmark.png")
-    #     plt.savefig(plot_path)
-    #     plt.close()
-    #     print(f"Boxplot saved: {plot_path}")
-
     return result
 
 

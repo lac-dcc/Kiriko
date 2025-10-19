@@ -74,7 +74,7 @@ def main(clean_mode=False):
         "../polybench-c-mlir-3.2/linear-algebra/kernels/gemver/",
         "../polybench-c-mlir-3.2/linear-algebra/kernels/gesummv/",
         "../polybench-c-mlir-3.2/linear-algebra/kernels/mvt/",
-        "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/",
+        # "../polybench-c-mlir-3.2/linear-algebra/kernels/symm/", # Excluded due to corruption issues with mlir
         "../polybench-c-mlir-3.2/linear-algebra/kernels/syr2k/",
         "../polybench-c-mlir-3.2/linear-algebra/kernels/syrk/",
         "../polybench-c-mlir-3.2/linear-algebra/kernels/trisolv/",
