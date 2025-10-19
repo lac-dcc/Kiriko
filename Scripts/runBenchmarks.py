@@ -32,7 +32,7 @@ def clean_generated_files(dir_name: Path, base_name: str):
         if file.name not in keep_c:
             file.unlink()
 
-def run_benchmarks(programs: list, output_file: Path):
+def run_benchmarks(programs):
     """
     Runs the benchmark for a given program and version.
 
@@ -41,6 +41,8 @@ def run_benchmarks(programs: list, output_file: Path):
         version (str): Version of the compiler used (e.g., "mlir", "pluto", "polly").
     """
     versions = ["O0", "O1", "O2", "O3", "mlir", "pluto", "O3_mllvm_polly"]
+    for version in versions:
+        os.makedirs(f'../Results/{version}', exist_ok=True)
     for i in range(SAMPLE_SIZE):
         for program_path in programs:
             for version in versions:
@@ -50,13 +52,12 @@ def run_benchmarks(programs: list, output_file: Path):
                 if not prog_bin.exists():
                     print(f"Error: Output file {prog_bin} does not exist.")
                     return
-                collect_metrics(prog_bin, output_file + f'_{version}_{i}.csv')
+                collect_metrics(prog_bin, f"../Results/{version}/results_{version}_{i}.csv")
 
 
-def main(output_file, clean_mode=False):
+def main(clean_mode=False):
     # Get the directory where the script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_file = '../' + output_file
     os.chdir(script_dir)
 
     # List of programs to compile
@@ -111,7 +112,7 @@ def main(output_file, clean_mode=False):
     compile_programs_pluto(programs)
     compile_programs_mlir(programs)
     
-    run_benchmarks(programs, output_file)
+    run_benchmarks(programs)
     
 if __name__ == "__main__":
     # Set up argument parsing
@@ -125,13 +126,6 @@ if __name__ == "__main__":
         action="store_true",
         help="Clean generated files (.ll, .o, _mlir.mlir)."
     )
-    parser.add_argument(
-        "--output_name",
-        type=str,
-        default="results",
-        help="Output CSV file for performance results."
-    )
-    
 
     args = parser.parse_args()
-    main(args.output_name, args.clean)
+    main(args.clean)
