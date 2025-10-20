@@ -97,9 +97,10 @@ The experiment used **SAMPLE_SIZE = 50**, meaning each benchmark was executed 50
 | RAM Size              | 32 GB (8 × 4 GB) |
 | RAM Type              | DDR3 @ 1333 MT/s |
 
-We measured the runtime of each benchmark across all compiler tools. Each program’s **average runtime** was used to compute speedups relative to the baseline (O0). A speedup greater than 1 indicates faster execution.  
+We measured the runtime of each benchmark across all compiler tools. Each program’s **average runtime** was used to compute speedups relative to the baseline, represented by the red line. A speedup greater than 1 indicates faster execution.
+This visualization allows us to examine the distinctive characteristics of each optimizer, identifying the benchmarks where they perform better or worse.
 
-> **Note:** The benchmark `gemm` was excluded from the speedup chart for clarity, as its results were extreme: `O3`: 1.009, `Pluto`: 1.406, `Polly`: 22.634, `MLIR`: 0.857.  
+> **Note:** The benchmark `gemm` was excluded from the speedup chart for clarity, as its results were extreme: `O3`: 1.045, `Pluto`: 1.72, `Polly`: 26.98, `MLIR`: 0.97.  
 
 ![Speedups](assets/speedups.png)  
 
