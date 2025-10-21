@@ -104,7 +104,7 @@ This visualization allows us to examine the distinctive characteristics of each 
 
 ![Speedups](assets/speedups.png)  
 
-We also calculated the **geometric mean** across all programs to summarize overall tool performance.  
+We also calculated the **geometric mean** across all programs speedups.  
 
 <p align="center">
   <img src="assets/GM.png" alt="Geometric Mean" width="800"/>
